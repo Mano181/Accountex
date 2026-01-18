@@ -1,0 +1,14 @@
+{
+    "name": "accounting-app",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "cd client && npm install && npm run build",
+        "postinstall": "cd client && npm install && cd ../server && npm install"
+    },
+    "dependencies": {
+        "body-parser": "^2.2.2",
+        "cors": "^2.8.5",
+        "express": "^5.2.1"
+    }
+}

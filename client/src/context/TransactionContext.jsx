@@ -10,7 +10,7 @@ export const TransactionProvider = ({ children }) => {
 
     const fetchTransactions = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/transactions');
+            const res = await fetch('/api/transactions');
             const data = await res.json();
             setTransactions(Array.isArray(data) ? data : []);
         } catch (error) {
@@ -22,7 +22,7 @@ export const TransactionProvider = ({ children }) => {
 
     const addTransaction = async (transaction) => {
         try {
-            const res = await fetch('http://localhost:5001/api/transactions', {
+            const res = await fetch('/api/transactions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(transaction)
@@ -40,7 +40,7 @@ export const TransactionProvider = ({ children }) => {
 
     const updateTransaction = async (id, transaction) => {
         try {
-            const res = await fetch(`http://localhost:5001/api/transactions/${id}`, {
+            const res = await fetch(`/api/transactions/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(transaction)
@@ -58,7 +58,7 @@ export const TransactionProvider = ({ children }) => {
 
     const deleteTransaction = async (id) => {
         try {
-            const res = await fetch(`http://localhost:5001/api/transactions/${id}`, {
+            const res = await fetch(`/api/transactions/${id}`, {
                 method: 'DELETE'
             });
             if (!res.ok) {
