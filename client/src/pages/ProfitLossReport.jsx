@@ -1,33 +1,44 @@
 import { useTransactions } from '../context/TransactionContext';
+import { useAuth } from '@clerk/clerk-react';
 import { TRANSACTION_TYPES } from '../lib/constants';
 import { formatCurrency } from '../lib/format';
+import { getGuestProfitLoss } from '../lib/guestAccounting';
+import { useState, useEffect } from 'react';
 
 export default function ProfitLossReport() {
     const { transactions, loading } = useTransactions();
+    const { isSignedIn, isLoaded } = useAuth();
+    const [reportData, setReportData] = useState(null);
+    const [fetching, setFetching] = useState(false);
 
-    const totals = transactions.reduce((acc, tx) => {
-        const amount = tx.amount || 0;
-        switch (tx.type) {
-            case TRANSACTION_TYPES.SALES:
-                acc.sales += amount;
-                break;
-            case TRANSACTION_TYPES.PURCHASE:
-                acc.purchases += amount;
-                break;
-            case TRANSACTION_TYPES.EXPENSE:
-                acc.expenses += amount;
-                break;
-            default:
-                break;
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        if (isSignedIn) {
+            // Fetch from API for authenticated users
+            setFetching(true);
+            fetch('/api/reports/profit-loss')
+                .then(res => res.json())
+                .then(data => {
+                    setReportData(data);
+                    setFetching(false);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch P&L report:", err);
+                    setFetching(false);
+                });
+        } else {
+            // Calculate locally for guests
+            setReportData(getGuestProfitLoss(transactions));
         }
-        return acc;
-    }, { sales: 0, purchases: 0, expenses: 0 });
+    }, [isSignedIn, isLoaded, transactions]);
 
-    const totalCosts = totals.purchases + totals.expenses;
-    const netProfit = totals.sales - totalCosts;
+    if (loading || (!reportData && fetching)) {
+        return <div className="text-center py-8">Loading Report...</div>;
+    }
 
-    if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+    if (!reportData) {
+        return <div className="text-center py-8 text-text-secondary">No data available</div>;
     }
 
     return (
@@ -35,7 +46,9 @@ export default function ProfitLossReport() {
             {/* Header */}
             <div className="bg-surface-highlight px-6 py-4 border-b border-border text-center">
                 <h2 className="text-lg font-bold">Profit & Loss Statement</h2>
-                <p className="text-xs text-text-secondary mt-1">For the Current Period</p>
+                <p className="text-xs text-text-secondary mt-1">
+                    {isSignedIn ? 'Real-time Database' : 'Guest Session Data'}
+                </p>
             </div>
 
             {/* Report Body */}
@@ -44,32 +57,32 @@ export default function ProfitLossReport() {
                 <section>
                     <h3 className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-3">Revenue</h3>
                     <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="pl-4">Sales</span>
-                            <span className="font-mono">{formatCurrency(totals.sales)}</span>
-                        </div>
+                        {reportData.revenue.map(item => (
+                            <div key={item.name} className="flex justify-between text-sm">
+                                <span className="pl-4">{item.name}</span>
+                                <span className="font-mono">{formatCurrency(item.amount)}</span>
+                            </div>
+                        ))}
                         <div className="flex justify-between font-semibold pt-2 border-t border-border">
                             <span>Total Revenue</span>
-                            <span className="font-mono text-success">{formatCurrency(totals.sales)}</span>
+                            <span className="font-mono text-success">{formatCurrency(reportData.totalRevenue)}</span>
                         </div>
                     </div>
                 </section>
 
                 {/* Costs */}
                 <section>
-                    <h3 className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-3">Less: Costs & Expenses</h3>
+                    <h3 className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-3">Expenses</h3>
                     <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="pl-4">Purchases</span>
-                            <span className="font-mono">({formatCurrency(totals.purchases)})</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="pl-4">Other Expenses</span>
-                            <span className="font-mono">({formatCurrency(totals.expenses)})</span>
-                        </div>
+                        {reportData.expenses.map(item => (
+                            <div key={item.name} className="flex justify-between text-sm">
+                                <span className="pl-4">{item.name}</span>
+                                <span className="font-mono">({formatCurrency(item.amount)})</span>
+                            </div>
+                        ))}
                         <div className="flex justify-between font-semibold pt-2 border-t border-border">
-                            <span>Total Costs</span>
-                            <span className="font-mono text-danger">({formatCurrency(totalCosts)})</span>
+                            <span>Total Expenses</span>
+                            <span className="font-mono text-danger">({formatCurrency(reportData.totalExpenses)})</span>
                         </div>
                     </div>
                 </section>
@@ -77,15 +90,15 @@ export default function ProfitLossReport() {
                 {/* Net Profit */}
                 <div className="bg-surface-highlight rounded-lg p-4 flex justify-between items-center">
                     <span className="font-bold text-lg">Net Profit</span>
-                    <span className={`font-mono font-bold text-xl ${netProfit >= 0 ? 'text-success' : 'text-danger'}`}>
-                        {netProfit < 0 ? '(' : ''}{formatCurrency(Math.abs(netProfit))}{netProfit < 0 ? ')' : ''}
+                    <span className={`font-mono font-bold text-xl ${reportData.netIncome >= 0 ? 'text-success' : 'text-danger'}`}>
+                        {reportData.netIncome < 0 ? '(' : ''}{formatCurrency(Math.abs(reportData.netIncome))}{reportData.netIncome < 0 ? ')' : ''}
                     </span>
                 </div>
             </div>
 
             {/* Footer */}
             <div className="bg-background px-6 py-3 border-t border-border text-center text-xs text-text-secondary">
-                Net Profit = Sales − (Purchases + Expenses)
+                Net Profit = Total Revenue − Total Expenses
             </div>
         </div>
     );

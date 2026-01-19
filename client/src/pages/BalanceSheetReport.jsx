@@ -1,60 +1,46 @@
 import { useTransactions } from '../context/TransactionContext';
-import { TRANSACTION_TYPES } from '../lib/constants';
+import { useAuth } from '@clerk/clerk-react';
 import { formatCurrency } from '../lib/format';
+import { getGuestBalanceSheet } from '../lib/guestAccounting';
+import { useState, useEffect } from 'react';
 import { AlertTriangle, CheckCircle } from 'lucide-react';
 
 export default function BalanceSheetReport() {
     const { transactions, loading } = useTransactions();
+    const { isSignedIn, isLoaded } = useAuth();
+    const [reportData, setReportData] = useState(null);
+    const [fetching, setFetching] = useState(false);
 
-    const totals = transactions.reduce((acc, tx) => {
-        const amount = tx.amount || 0;
-        switch (tx.type) {
-            case TRANSACTION_TYPES.SALES:
-                acc.sales += amount;
-                break;
-            case TRANSACTION_TYPES.PAYMENT_RECEIVED:
-                acc.paymentReceived += amount;
-                break;
-            case TRANSACTION_TYPES.PURCHASE:
-                acc.purchase += amount;
-                break;
-            case TRANSACTION_TYPES.PURCHASE_PAYMENT:
-                acc.purchasePayment += amount;
-                break;
-            case TRANSACTION_TYPES.EXPENSE:
-                acc.expense += amount;
-                break;
-            case TRANSACTION_TYPES.LOAN_TAKEN:
-                acc.loanTaken += amount;
-                break;
-            case TRANSACTION_TYPES.LOAN_PAID:
-                acc.loanPaid += amount;
-                break;
-            default:
-                break;
+    useEffect(() => {
+        if (!isLoaded) return;
+
+        if (isSignedIn) {
+            setFetching(true);
+            fetch('/api/reports/balance-sheet')
+                .then(res => res.json())
+                .then(data => {
+                    setReportData(data);
+                    setFetching(false);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch Balance Sheet:", err);
+                    setFetching(false);
+                });
+        } else {
+            setReportData(getGuestBalanceSheet(transactions));
         }
-        return acc;
-    }, { sales: 0, paymentReceived: 0, purchase: 0, purchasePayment: 0, expense: 0, loanTaken: 0, loanPaid: 0 });
+    }, [isSignedIn, isLoaded, transactions]);
 
-    // ASSETS
-    const cashBank = totals.paymentReceived - totals.purchasePayment - totals.expense + totals.loanTaken - totals.loanPaid;
-    const receivables = totals.sales - totals.paymentReceived;
-    const totalAssets = cashBank + receivables;
-
-    // LIABILITIES
-    const payables = totals.purchase - totals.purchasePayment;
-    const loans = totals.loanTaken - totals.loanPaid;
-    const totalLiabilities = payables + loans;
-
-    // EQUITY
-    const netProfit = totals.sales - (totals.purchase + totals.expense);
-    const totalEquity = netProfit;
-
-    const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01;
-
-    if (loading) {
-        return <div className="text-center py-8">Loading...</div>;
+    if (loading || (!reportData && fetching)) {
+        return <div className="text-center py-8">Loading Report...</div>;
     }
+
+    if (!reportData) {
+        return <div className="text-center py-8 text-text-secondary">No data available</div>;
+    }
+
+    const { totalAssets, totalLiabilities, totalEquity, assets, liabilities, equity, netIncome } = reportData;
+    const isBalanced = Math.abs(totalAssets - (totalLiabilities + totalEquity)) < 0.01;
 
     const ReportLine = ({ label, value, indent = false, bold = false, highlight = false }) => (
         <div className={`flex justify-between text-sm py-1.5 ${bold ? 'font-semibold' : ''} ${highlight ? 'bg-surface-highlight rounded px-2 -mx-2' : ''}`}>
@@ -68,7 +54,9 @@ export default function BalanceSheetReport() {
             {/* Header */}
             <div className="bg-surface-highlight px-6 py-4 border-b border-border text-center">
                 <h2 className="text-lg font-bold">Balance Sheet</h2>
-                <p className="text-xs text-text-secondary mt-1">Statement of Financial Position</p>
+                <p className="text-xs text-text-secondary mt-1">
+                    {isSignedIn ? 'Real-time Database' : 'Guest Session Data'}
+                </p>
             </div>
 
             {/* Report Body */}
@@ -77,8 +65,9 @@ export default function BalanceSheetReport() {
                 <section>
                     <h3 className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-3">Assets</h3>
                     <div className="space-y-1">
-                        <ReportLine label="Cash / Bank" value={formatCurrency(cashBank)} indent />
-                        <ReportLine label="Accounts Receivable" value={formatCurrency(receivables)} indent />
+                        {assets.map(item => (
+                            <ReportLine key={item.name} label={item.name} value={formatCurrency(item.amount)} indent />
+                        ))}
                         <ReportLine label="Total Assets" value={formatCurrency(totalAssets)} bold highlight />
                     </div>
                 </section>
@@ -87,8 +76,9 @@ export default function BalanceSheetReport() {
                 <section>
                     <h3 className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-3">Liabilities</h3>
                     <div className="space-y-1">
-                        <ReportLine label="Accounts Payable" value={formatCurrency(payables)} indent />
-                        <ReportLine label="Loans Payable" value={formatCurrency(loans)} indent />
+                        {liabilities.map(item => (
+                            <ReportLine key={item.name} label={item.name} value={formatCurrency(item.amount)} indent />
+                        ))}
                         <ReportLine label="Total Liabilities" value={formatCurrency(totalLiabilities)} bold />
                     </div>
                 </section>
@@ -97,7 +87,10 @@ export default function BalanceSheetReport() {
                 <section>
                     <h3 className="text-xs text-text-secondary uppercase tracking-wider font-semibold mb-3">Equity</h3>
                     <div className="space-y-1">
-                        <ReportLine label="Retained Earnings" value={formatCurrency(netProfit)} indent />
+                        {equity.map(item => (
+                            <ReportLine key={item.name} label={item.name} value={formatCurrency(item.amount)} indent />
+                        ))}
+                        <ReportLine label="Net Income (Current Period)" value={formatCurrency(netIncome)} indent />
                         <ReportLine label="Total Equity" value={formatCurrency(totalEquity)} bold />
                     </div>
                 </section>
