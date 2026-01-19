@@ -20,7 +20,9 @@ export default function Ledger() {
                         {transactions.slice().reverse().map(tx => (
                             <tr key={tx.id} className="border-b border-border hover:bg-surface-highlight transition-colors">
                                 <td className="p-4 align-top text-text-secondary">
-                                    {typeof tx.date === 'string' ? tx.date.substring(0, 10) : new Date(tx.date).toISOString().split('T')[0]}
+                                    {/* Ensure date is displayed as YYYY-MM-DD */
+                                        (typeof tx.date === 'string' ? tx.date.split('T')[0] : new Date(tx.date).toISOString().split('T')[0])
+                                    }
                                 </td>
                                 <td className="p-4 align-top font-medium">{tx.description}</td>
                                 <td className="p-4">
