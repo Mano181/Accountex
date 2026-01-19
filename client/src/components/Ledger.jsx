@@ -9,7 +9,7 @@ export default function Ledger() {
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="border-b border-border text-text-secondary text-sm">
+                        <tr className="border-b border-border text-text-header text-sm">
                             <th className="p-4">Date</th>
                             <th className="p-4">Description</th>
                             <th className="p-4">Entries</th>

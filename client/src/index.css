@@ -1,23 +1,21 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #f8fafc;
-  /* Slate 50 */
-  --color-surface: #ffffff;
-  --color-surface-highlight: #f1f5f9;
-  /* Slate 100 */
-  --color-border: #e2e8f0;
-  /* Slate 200 */
-  --color-text-primary: #334155;
-  /* Slate 700 */
-  --color-text-secondary: #64748b;
-  /* Slate 500 */
-  --color-primary: #475569;
-  /* Slate 600 - Calm, professional */
-  --color-success: #059669;
-  /* Emerald 600 */
-  --color-danger: #dc2626;
-  /* Red 600 */
+  --color-background: #F8FAFC;
+  --color-surface: #FFFFFF;
+  --color-surface-highlight: #F3F4F6;
+  /* Gray 100 for hover state */
+  --color-border: #E5E7EB;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-text-header: #374151;
+  /* Specific table header color */
+  --color-primary: #4A6FA5;
+  --color-primary-hover: #3E5F8A;
+  --color-link: #5B8DEF;
+  a --color-success: #2E7D32;
+  --color-danger: #C2413C;
+  --color-warning: #D97706;
 }
 
 @layer base {

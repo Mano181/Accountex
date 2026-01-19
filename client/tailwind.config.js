@@ -7,19 +7,25 @@ export default {
     theme: {
         extend: {
             colors: {
-                background: '#f8fafc',
+                background: '#F8FAFC',
                 surface: {
-                    DEFAULT: '#ffffff',
-                    highlight: '#f1f5f9',
+                    DEFAULT: '#FFFFFF',
+                    highlight: '#F3F4F6',
                 },
-                border: '#e2e8f0',
+                border: '#E5E7EB',
                 text: {
-                    primary: '#334155',
-                    secondary: '#64748b',
+                    primary: '#111827',
+                    secondary: '#6B7280',
+                    header: '#374151',
                 },
-                primary: '#475569',
-                success: '#059669',
-                danger: '#dc2626',
+                primary: {
+                    DEFAULT: '#4A6FA5',
+                    hover: '#3E5F8A',
+                },
+                link: '#5B8DEF',
+                success: '#2E7D32',
+                danger: '#C2413C',
+                warning: '#D97706',
             },
         },
     },
