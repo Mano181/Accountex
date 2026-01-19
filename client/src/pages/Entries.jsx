@@ -4,6 +4,14 @@ import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES } from '../lib/constants';
 import { formatCurrency, TYPE_LABELS } from '../lib/format';
 
+const formatDate = (dateVal) => {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'string') {
+        return dateVal.includes('T') ? dateVal.split('T')[0] : dateVal;
+    }
+    return new Date(dateVal).toISOString().split('T')[0];
+};
+
 export default function Entries() {
     const { transactions, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
     // Use local date instead of UTC to avoid incorrect date in early morning
@@ -169,7 +177,7 @@ export default function Entries() {
                         <tbody className="divide-y divide-border">
                             {transactions.slice().reverse().map(tx => (
                                 <tr key={tx.id} className={`transition-colors ${editingId === tx.id ? 'bg-yellow-500/10' : 'hover:bg-surface-highlight/50'}`}>
-                                    <td className="p-4 text-text-secondary whitespace-nowrap">{tx.date}</td>
+                                    <td className="p-4 text-text-secondary whitespace-nowrap">{formatDate(tx.date)}</td>
                                     <td className="p-4 font-medium">{tx.description}</td>
                                     <td className="p-4 text-text-secondary">{TYPE_LABELS[tx.type] || tx.type}</td>
                                     <td className="p-4 text-right font-mono font-medium">{formatCurrency(tx.amount)}</td>
