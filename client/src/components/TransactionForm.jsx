@@ -86,7 +86,7 @@ export default function TransactionForm() {
                     <div>
                         <label className="block text-sm text-text-secondary mb-1">Type</label>
                         <select
-                            className="w-full p-2 rounded bg-background border border-border focus:border-primary outline-none"
+                            className="w-full p-2 h-[42px] rounded bg-background border border-border focus:border-primary outline-none"
                             value={type}
                             onChange={(e) => setType(e.target.value)}
                         >

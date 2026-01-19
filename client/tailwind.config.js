@@ -7,19 +7,19 @@ export default {
     theme: {
         extend: {
             colors: {
-                background: '#0f172a',
+                background: '#f8fafc',
                 surface: {
-                    DEFAULT: '#1e293b',
-                    highlight: '#334155',
+                    DEFAULT: '#ffffff',
+                    highlight: '#f1f5f9',
                 },
-                border: '#334155',
+                border: '#e2e8f0',
                 text: {
-                    primary: '#f8fafc',
-                    secondary: '#94a3b8',
+                    primary: '#334155',
+                    secondary: '#64748b',
                 },
-                primary: '#3b82f6',
-                success: '#10b981',
-                danger: '#ef4444',
+                primary: '#475569',
+                success: '#059669',
+                danger: '#dc2626',
             },
         },
     },

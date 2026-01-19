@@ -19,7 +19,7 @@ export default function Ledger() {
                     <tbody>
                         {transactions.slice().reverse().map(tx => (
                             <tr key={tx.id} className="border-b border-border hover:bg-surface-highlight transition-colors">
-                                <td className="p-4 align-top text-text-secondary">{tx.date}</td>
+                                <td className="p-4 align-top text-text-secondary">{new Date(tx.date).toLocaleDateString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit' })}</td>
                                 <td className="p-4 align-top font-medium">{tx.description}</td>
                                 <td className="p-4">
                                     {tx.entries.map((e, i) => (
