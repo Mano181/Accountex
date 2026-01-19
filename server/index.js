@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { clerkMiddleware, requireAuth } = require('@clerk/express');
 const { getTransactions, addTransaction, updateTransaction, deleteTransaction } = require('./store');
 const { validateTransaction, generateEntriesFromType, TRANSACTION_TYPES } = require('./accounting');
 const { getProfitLoss, getBalanceSheet } = require('./reports');
@@ -10,9 +11,10 @@ const PORT = 5001;
 
 app.use(cors());
 app.use(bodyParser.json());
+app.use(clerkMiddleware());
 
-// API Routes
-app.get('/api/transactions', async (req, res) => {
+// API Routes - Protected
+app.get('/api/transactions', requireAuth(), async (req, res) => {
     try {
         const transactions = await getTransactions();
         res.json(transactions);
@@ -21,8 +23,8 @@ app.get('/api/transactions', async (req, res) => {
     }
 });
 
-// Reports
-app.get('/api/reports/profit-loss', async (req, res) => {
+// Reports - Protected
+app.get('/api/reports/profit-loss', requireAuth(), async (req, res) => {
     res.set('Cache-Control', 'no-store');
     try {
         const data = await getProfitLoss();
@@ -32,7 +34,7 @@ app.get('/api/reports/profit-loss', async (req, res) => {
     }
 });
 
-app.get('/api/reports/balance-sheet', async (req, res) => {
+app.get('/api/reports/balance-sheet', requireAuth(), async (req, res) => {
     res.set('Cache-Control', 'no-store');
     try {
         const data = await getBalanceSheet();
@@ -67,7 +69,7 @@ const validateLoanPayment = async (type, amount, excludeId = null) => {
     }
 };
 
-app.post('/api/transactions', async (req, res) => {
+app.post('/api/transactions', requireAuth(), async (req, res) => {
     const { date, description, type, amount } = req.body;
 
     if (!date || !description || !type || !amount) {
@@ -110,7 +112,7 @@ app.post('/api/transactions', async (req, res) => {
     }
 });
 
-app.put('/api/transactions/:id', async (req, res) => {
+app.put('/api/transactions/:id', requireAuth(), async (req, res) => {
     const { id } = req.params;
     const { date, description, type, amount } = req.body;
 
@@ -153,7 +155,7 @@ app.put('/api/transactions/:id', async (req, res) => {
     }
 });
 
-app.delete('/api/transactions/:id', async (req, res) => {
+app.delete('/api/transactions/:id', requireAuth(), async (req, res) => {
     const { id } = req.params;
     try {
         const result = await deleteTransaction(id);
