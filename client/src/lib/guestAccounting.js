@@ -1,9 +1,9 @@
-import { CHART_OF_ACCOUNTS } from './constants';
+import { CATEGORIES } from './categories';
 
 export const getGuestProfitLoss = (transactions) => {
     // Initialize balances
     const balances = {};
-    Object.values(CHART_OF_ACCOUNTS).flat().forEach(acc => balances[acc] = 0);
+    Object.keys(CATEGORIES).forEach(acc => balances[acc] = 0);
 
     // Calculate balances from transactions
     transactions.forEach(tx => {
@@ -12,9 +12,12 @@ export const getGuestProfitLoss = (transactions) => {
         tx.entries.forEach(entry => {
             const amount = parseFloat(entry.amount);
             const account = entry.account;
+            const meta = CATEGORIES[account];
+
+            if (!meta) return;
 
             // Debit increases Assets/Expenses, Credit increases Liabilities/Equity/Revenue
-            const isDebitNormal = CHART_OF_ACCOUNTS.ASSETS.includes(account) || CHART_OF_ACCOUNTS.EXPENSES.includes(account);
+            const isDebitNormal = meta.normalBalance === 'DEBIT';
 
             if (isDebitNormal) {
                 if (entry.type === 'debit') balances[account] += amount;
@@ -26,25 +29,33 @@ export const getGuestProfitLoss = (transactions) => {
         });
     });
 
-    const revenue = CHART_OF_ACCOUNTS.REVENUE.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
-    const expenses = CHART_OF_ACCOUNTS.EXPENSES.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
+    const revenue = [];
+    const expenses = [];
 
-    const totalRev = revenue.reduce((sum, item) => sum + item.amount, 0);
-    const totalExp = expenses.reduce((sum, item) => sum + item.amount, 0);
+    Object.entries(CATEGORIES).forEach(([name, meta]) => {
+        if (meta.report === 'PL') {
+            const item = { name, amount: balances[name] || 0 };
+            if (meta.type === 'REVENUE') revenue.push(item);
+            else if (meta.type === 'EXPENSE') expenses.push(item);
+        }
+    });
+
+    const totalRevenue = revenue.reduce((sum, item) => sum + item.amount, 0);
+    const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
 
     return {
         revenue,
         expenses,
-        totalRevenue: totalRev,
-        totalExpenses: totalExp,
-        netIncome: totalRev - totalExp
+        totalRevenue,
+        totalExpenses,
+        netIncome: totalRevenue - totalExpenses
     };
 };
 
 export const getGuestBalanceSheet = (transactions) => {
     // Initialize balances
     const balances = {};
-    Object.values(CHART_OF_ACCOUNTS).flat().forEach(acc => balances[acc] = 0);
+    Object.keys(CATEGORIES).forEach(acc => balances[acc] = 0);
 
     // Calculate balances from transactions
     transactions.forEach(tx => {
@@ -53,8 +64,11 @@ export const getGuestBalanceSheet = (transactions) => {
         tx.entries.forEach(entry => {
             const amount = parseFloat(entry.amount);
             const account = entry.account;
+            const meta = CATEGORIES[account];
 
-            const isDebitNormal = CHART_OF_ACCOUNTS.ASSETS.includes(account) || CHART_OF_ACCOUNTS.EXPENSES.includes(account);
+            if (!meta) return;
+
+            const isDebitNormal = meta.normalBalance === 'DEBIT';
 
             if (isDebitNormal) {
                 if (entry.type === 'debit') balances[account] += amount;
@@ -70,9 +84,18 @@ export const getGuestBalanceSheet = (transactions) => {
     const pl = getGuestProfitLoss(transactions);
     const netIncome = pl.netIncome;
 
-    const assets = CHART_OF_ACCOUNTS.ASSETS.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
-    const liabilities = CHART_OF_ACCOUNTS.LIABILITIES.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
-    const equity = CHART_OF_ACCOUNTS.EQUITY.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
+    const assets = [];
+    const liabilities = [];
+    const equity = [];
+
+    Object.entries(CATEGORIES).forEach(([name, meta]) => {
+        if (meta.report === 'BS') {
+            const item = { name, amount: balances[name] || 0 };
+            if (meta.type === 'ASSET') assets.push(item);
+            else if (meta.type === 'LIABILITY') liabilities.push(item);
+            else if (meta.type === 'EQUITY') equity.push(item);
+        }
+    });
 
     const totalAssets = assets.reduce((sum, item) => sum + item.amount, 0);
     const totalLiabilities = liabilities.reduce((sum, item) => sum + item.amount, 0);

@@ -1,22 +1,22 @@
 const db = require('./db');
-const { CHART_OF_ACCOUNTS } = require('./accounting');
+const { CATEGORIES, getChartOfAccounts } = require('./categories');
 
 const getBalances = async () => {
-    // Get all entries with account types
-    // Since we don't store account type in DB, we map it in code.
     const result = await db.query('SELECT account, type, amount FROM entries');
     const entries = result.rows;
 
     const balances = {};
-    Object.values(CHART_OF_ACCOUNTS).flat().forEach(acc => balances[acc] = 0);
+    Object.keys(CATEGORIES).forEach(acc => balances[acc] = 0);
 
     entries.forEach(entry => {
         const amount = parseFloat(entry.amount);
         const account = entry.account;
+        const meta = CATEGORIES[account];
 
-        // This logic relies on consistency with client-side account mapping.
+        if (!meta) return;
+
         // Debit increases Assets/Expenses, Credit increases Liabilities/Equity/Revenue
-        const isDebitNormal = CHART_OF_ACCOUNTS.ASSETS.includes(account) || CHART_OF_ACCOUNTS.EXPENSES.includes(account);
+        const isDebitNormal = meta.normalBalance === 'DEBIT';
 
         if (isDebitNormal) {
             if (entry.type === 'debit') balances[account] += amount;
@@ -33,18 +33,26 @@ const getBalances = async () => {
 const getProfitLoss = async () => {
     const balances = await getBalances();
 
-    const revenue = CHART_OF_ACCOUNTS.REVENUE.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
-    const expenses = CHART_OF_ACCOUNTS.EXPENSES.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
+    const revenue = [];
+    const expenses = [];
 
-    const totalRev = revenue.reduce((sum, item) => sum + item.amount, 0);
-    const totalExp = expenses.reduce((sum, item) => sum + item.amount, 0);
+    Object.entries(CATEGORIES).forEach(([name, meta]) => {
+        if (meta.report === 'PL') {
+            const item = { name, amount: balances[name] || 0 };
+            if (meta.type === 'REVENUE') revenue.push(item);
+            else if (meta.type === 'EXPENSE') expenses.push(item);
+        }
+    });
+
+    const totalRevenue = revenue.reduce((sum, item) => sum + item.amount, 0);
+    const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
 
     return {
         revenue,
         expenses,
-        totalRevenue: totalRev,
-        totalExpenses: totalExp,
-        netIncome: totalRev - totalExp
+        totalRevenue,
+        totalExpenses,
+        netIncome: totalRevenue - totalExpenses
     };
 };
 
@@ -53,20 +61,28 @@ const getBalanceSheet = async () => {
     const pl = await getProfitLoss();
     const netIncome = pl.netIncome;
 
-    const assets = CHART_OF_ACCOUNTS.ASSETS.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
-    const liabilities = CHART_OF_ACCOUNTS.LIABILITIES.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
-    const equity = CHART_OF_ACCOUNTS.EQUITY.map(acc => ({ name: acc, amount: balances[acc] || 0 }));
+    const assets = [];
+    const liabilities = [];
+    const equity = [];
+
+    Object.entries(CATEGORIES).forEach(([name, meta]) => {
+        if (meta.report === 'BS') {
+            const item = { name, amount: balances[name] || 0 };
+            if (meta.type === 'ASSET') assets.push(item);
+            else if (meta.type === 'LIABILITY') liabilities.push(item);
+            else if (meta.type === 'EQUITY') equity.push(item);
+        }
+    });
 
     const totalAssets = assets.reduce((sum, item) => sum + item.amount, 0);
     const totalLiabilities = liabilities.reduce((sum, item) => sum + item.amount, 0);
-    // Add Net Income to Equity (Retained Earnings logic simplified)
     const totalEquity = equity.reduce((sum, item) => sum + item.amount, 0) + netIncome;
 
     return {
         assets,
         liabilities,
         equity,
-        netIncome, // Needed for display in equity section
+        netIncome,
         totalAssets,
         totalLiabilities,
         totalEquity
@@ -77,3 +93,4 @@ module.exports = {
     getProfitLoss,
     getBalanceSheet
 };
+

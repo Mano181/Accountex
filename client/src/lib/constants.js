@@ -1,18 +1,8 @@
-export const CHART_OF_ACCOUNTS = {
-    ASSETS: ['Cash', 'Bank', 'Accounts Receivable', 'Equipment', 'Inventory'],
-    LIABILITIES: ['Accounts Payable', 'Loans Payable'],
-    EQUITY: ['Owner Capital', 'Retained Earnings'],
-    REVENUE: ['Sales Revenue', 'Service Revenue'],
-    EXPENSES: ['Rent Expense', 'Salaries Expense', 'Utilities Expense', 'Supplies Expense', 'General Expense', 'Purchases']
-};
+import { CATEGORIES, ACCOUNT_TYPES, getChartOfAccounts } from './categories';
 
-export const ACCOUNT_TYPES = {
-    ASSET: 'ASSET',
-    LIABILITY: 'LIABILITY',
-    EQUITY: 'EQUITY',
-    REVENUE: 'REVENUE',
-    EXPENSE: 'EXPENSE'
-};
+export const CHART_OF_ACCOUNTS = getChartOfAccounts();
+
+export { ACCOUNT_TYPES };
 
 export const TRANSACTION_TYPES = {
     SALES: 'SALES',
@@ -49,7 +39,7 @@ export const generateEntriesFromType = (type, amount) => {
             ];
         case TRANSACTION_TYPES.EXPENSE:
             return [
-                { account: 'General Expense', type: 'debit', amount: amt },
+                { account: 'Purchases', type: 'debit', amount: amt }, // All expenses map to Purchases per instructions
                 { account: 'Cash', type: 'credit', amount: amt }
             ];
         case TRANSACTION_TYPES.LOAN_TAKEN:
@@ -68,12 +58,7 @@ export const generateEntriesFromType = (type, amount) => {
 };
 
 export const getAccountType = (accountName) => {
-    if (CHART_OF_ACCOUNTS.ASSETS.includes(accountName)) return ACCOUNT_TYPES.ASSET;
-    if (CHART_OF_ACCOUNTS.LIABILITIES.includes(accountName)) return ACCOUNT_TYPES.LIABILITY;
-    if (CHART_OF_ACCOUNTS.EQUITY.includes(accountName)) return ACCOUNT_TYPES.EQUITY;
-    if (CHART_OF_ACCOUNTS.REVENUE.includes(accountName)) return ACCOUNT_TYPES.REVENUE;
-    if (CHART_OF_ACCOUNTS.EXPENSES.includes(accountName)) return ACCOUNT_TYPES.EXPENSE;
-    return 'UNKNOWN';
+    return CATEGORIES[accountName]?.type || 'UNKNOWN';
 };
 
 export const TYPE_LABELS = {
@@ -85,3 +70,4 @@ export const TYPE_LABELS = {
     [TRANSACTION_TYPES.LOAN_TAKEN]: 'Loan Taken',
     [TRANSACTION_TYPES.LOAN_PAID]: 'Loan Repayment'
 };
+

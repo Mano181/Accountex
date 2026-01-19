@@ -1,19 +1,6 @@
-// Chart of Accounts (Simplified)
-const CHART_OF_ACCOUNTS = {
-    ASSETS: ['Cash', 'Bank', 'Accounts Receivable', 'Equipment', 'Inventory'],
-    LIABILITIES: ['Accounts Payable', 'Loans Payable'],
-    EQUITY: ['Owner Capital', 'Retained Earnings'],
-    REVENUE: ['Sales Revenue', 'Service Revenue'],
-    EXPENSES: ['Rent Expense', 'Salaries Expense', 'Utilities Expense', 'Supplies Expense', 'General Expense', 'Purchases']
-};
+const { CATEGORIES, ACCOUNT_TYPES, getChartOfAccounts } = require('./categories');
 
-const ACCOUNT_TYPES = {
-    ASSET: 'ASSET',
-    LIABILITY: 'LIABILITY',
-    EQUITY: 'EQUITY',
-    REVENUE: 'REVENUE',
-    EXPENSE: 'EXPENSE'
-};
+const CHART_OF_ACCOUNTS = getChartOfAccounts();
 
 const TRANSACTION_TYPES = {
     SALES: 'SALES',
@@ -27,12 +14,7 @@ const TRANSACTION_TYPES = {
 
 // Map accounts to types
 const getAccountType = (accountName) => {
-    if (CHART_OF_ACCOUNTS.ASSETS.includes(accountName)) return ACCOUNT_TYPES.ASSET;
-    if (CHART_OF_ACCOUNTS.LIABILITIES.includes(accountName)) return ACCOUNT_TYPES.LIABILITY;
-    if (CHART_OF_ACCOUNTS.EQUITY.includes(accountName)) return ACCOUNT_TYPES.EQUITY;
-    if (CHART_OF_ACCOUNTS.REVENUE.includes(accountName)) return ACCOUNT_TYPES.REVENUE;
-    if (CHART_OF_ACCOUNTS.EXPENSES.includes(accountName)) return ACCOUNT_TYPES.EXPENSE;
-    return 'UNKNOWN';
+    return CATEGORIES[accountName]?.type || 'UNKNOWN';
 };
 
 // Validate that Debits = Credits
@@ -64,7 +46,7 @@ const generateEntriesFromType = (type, amount) => {
             ];
         case TRANSACTION_TYPES.PURCHASE:
             return [
-                { account: 'Purchases', type: 'debit', amount: amt }, // Periodic inventory system style
+                { account: 'Purchases', type: 'debit', amount: amt },
                 { account: 'Accounts Payable', type: 'credit', amount: amt }
             ];
         case TRANSACTION_TYPES.PURCHASE_PAYMENT:
@@ -74,7 +56,7 @@ const generateEntriesFromType = (type, amount) => {
             ];
         case TRANSACTION_TYPES.EXPENSE:
             return [
-                { account: 'General Expense', type: 'debit', amount: amt },
+                { account: 'Purchases', type: 'debit', amount: amt }, // Simplified: all expenses map to Purchases per instructions
                 { account: 'Cash', type: 'credit', amount: amt }
             ];
         case TRANSACTION_TYPES.LOAN_TAKEN:
@@ -100,3 +82,4 @@ module.exports = {
     validateTransaction,
     generateEntriesFromType
 };
+
