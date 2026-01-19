@@ -1,8 +1,15 @@
 const db = require('./db');
 const { CATEGORIES, getChartOfAccounts } = require('./categories');
 
-const getBalances = async () => {
-    const result = await db.query('SELECT account, type, amount FROM entries');
+const getBalances = async (userId) => {
+    // Correctly join transactions to filter entries by user_id
+    const query = `
+        SELECT e.account, e.type, e.amount 
+        FROM entries e
+        JOIN transactions t ON e.transaction_id = t.id
+        WHERE t.user_id = $1
+    `;
+    const result = await db.query(query, [userId]);
     const entries = result.rows;
 
     const balances = {};
@@ -30,8 +37,8 @@ const getBalances = async () => {
     return balances;
 };
 
-const getProfitLoss = async () => {
-    const balances = await getBalances();
+const getProfitLoss = async (userId) => {
+    const balances = await getBalances(userId);
 
     const revenue = [];
     const expenses = [];
@@ -56,9 +63,9 @@ const getProfitLoss = async () => {
     };
 };
 
-const getBalanceSheet = async () => {
-    const balances = await getBalances();
-    const pl = await getProfitLoss();
+const getBalanceSheet = async (userId) => {
+    const balances = await getBalances(userId);
+    const pl = await getProfitLoss(userId);
     const netIncome = pl.netIncome;
 
     const assets = [];

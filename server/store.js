@@ -1,9 +1,15 @@
 const db = require('./db');
 
-const getTransactions = async () => {
-    // Fetch all transactions and their entries
-    const transactionsResult = await db.query('SELECT * FROM transactions ORDER BY date DESC, timestamp DESC');
-    const entriesResult = await db.query('SELECT * FROM entries');
+const getTransactions = async (userId) => {
+    // Fetch user's transactions and their entries
+    const transactionsResult = await db.query('SELECT * FROM transactions WHERE user_id = $1 ORDER BY date DESC, timestamp DESC', [userId]);
+
+    if (transactionsResult.rows.length === 0) return [];
+
+    const transactionIds = transactionsResult.rows.map(t => t.id);
+
+    // Fetch entries for these transactions only
+    const entriesResult = await db.query('SELECT * FROM entries WHERE transaction_id = ANY($1)', [transactionIds]);
 
     const transactions = transactionsResult.rows;
     const entries = entriesResult.rows;
@@ -19,15 +25,15 @@ const getTransactions = async () => {
     }));
 };
 
-const addTransaction = async (transaction) => {
+const addTransaction = async (transaction, userId) => {
     const client = await db.getClient();
     try {
         await client.query('BEGIN');
 
-        // Insert Transaction
+        // Insert Transaction with user_id
         const txQuery = `
-            INSERT INTO transactions (id, date, description, type, amount, timestamp)
-            VALUES ($1, $2, $3, $4, $5, $6)
+            INSERT INTO transactions (id, date, description, type, amount, timestamp, user_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `;
         const txValues = [
@@ -36,7 +42,8 @@ const addTransaction = async (transaction) => {
             transaction.description,
             transaction.type,
             transaction.amount,
-            transaction.timestamp
+            transaction.timestamp,
+            userId
         ];
         const txResult = await client.query(txQuery, txValues);
 
@@ -66,23 +73,23 @@ const addTransaction = async (transaction) => {
     }
 };
 
-const updateTransaction = async (id, updatedData) => {
+const updateTransaction = async (id, updatedData, userId) => {
     const client = await db.getClient();
     try {
         await client.query('BEGIN');
 
-        // Check exists
-        const check = await client.query('SELECT id FROM transactions WHERE id = $1', [id]);
+        // Check ownership & existence
+        const check = await client.query('SELECT id FROM transactions WHERE id = $1 AND user_id = $2', [id, userId]);
         if (check.rows.length === 0) {
             await client.query('ROLLBACK');
-            return null;
+            return null; // Not found or not owned
         }
 
         // Update Transaction
         const txQuery = `
             UPDATE transactions 
             SET date = $1, description = $2, type = $3, amount = $4, timestamp = $5
-            WHERE id = $6
+            WHERE id = $6 AND user_id = $7
             RETURNING *
         `;
         const txValues = [
@@ -91,7 +98,8 @@ const updateTransaction = async (id, updatedData) => {
             updatedData.type,
             updatedData.amount,
             updatedData.timestamp,
-            id
+            id,
+            userId
         ];
         const txResult = await client.query(txQuery, txValues);
 
@@ -123,11 +131,12 @@ const updateTransaction = async (id, updatedData) => {
     }
 };
 
-const deleteTransaction = async (id) => {
+const deleteTransaction = async (id, userId) => {
     const client = await db.getClient();
     try {
         await client.query('BEGIN');
-        const result = await client.query('DELETE FROM transactions WHERE id = $1', [id]);
+        // Delete only if owned by user
+        const result = await client.query('DELETE FROM transactions WHERE id = $1 AND user_id = $2', [id, userId]);
         await client.query('COMMIT');
         return result.rowCount > 0;
     } catch (e) {
