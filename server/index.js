@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const { getTransactions, addTransaction, updateTransaction, deleteTransaction } = require('./store');
 const { validateTransaction, generateEntriesFromType, TRANSACTION_TYPES } = require('./accounting');
+const { getProfitLoss, getBalanceSheet } = require('./reports');
 
 const app = express();
 const PORT = 5001;
@@ -11,13 +12,39 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // API Routes
-app.get('/api/transactions', (req, res) => {
-    res.json(getTransactions());
+app.get('/api/transactions', async (req, res) => {
+    try {
+        const transactions = await getTransactions();
+        res.json(transactions);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch transactions' });
+    }
+});
+
+// Reports
+app.get('/api/reports/profit-loss', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await getProfitLoss();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/reports/balance-sheet', async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await getBalanceSheet();
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Helper to calculate outstanding loan
-const calculateOutstandingLoan = (excludeTransactionId = null) => {
-    const transactions = getTransactions();
+const calculateOutstandingLoan = async (excludeTransactionId = null) => {
+    const transactions = await getTransactions();
     let taken = 0;
     let paid = 0;
 
@@ -31,16 +58,16 @@ const calculateOutstandingLoan = (excludeTransactionId = null) => {
 };
 
 // Common validation logic
-const validateLoanPayment = (type, amount, excludeId = null) => {
+const validateLoanPayment = async (type, amount, excludeId = null) => {
     if (type === TRANSACTION_TYPES.LOAN_PAID) {
-        const outstanding = calculateOutstandingLoan(excludeId);
+        const outstanding = await calculateOutstandingLoan(excludeId);
         if (parseFloat(amount) > outstanding) {
             throw new Error(`Loan repayment (${amount}) cannot exceed outstanding loan (${outstanding.toFixed(2)})`);
         }
     }
 };
 
-app.post('/api/transactions', (req, res) => {
+app.post('/api/transactions', async (req, res) => {
     const { date, description, type, amount } = req.body;
 
     if (!date || !description || !type || !amount) {
@@ -57,7 +84,7 @@ app.post('/api/transactions', (req, res) => {
 
     try {
         // Validate Loan Logic
-        validateLoanPayment(type, amount);
+        await validateLoanPayment(type, amount);
 
         const entries = generateEntriesFromType(type, amount);
 
@@ -76,14 +103,14 @@ app.post('/api/transactions', (req, res) => {
             timestamp: new Date().toISOString()
         };
 
-        addTransaction(newTransaction);
-        res.status(201).json(newTransaction);
+        const result = await addTransaction(newTransaction);
+        res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ error: error.message });
     }
 });
 
-app.put('/api/transactions/:id', (req, res) => {
+app.put('/api/transactions/:id', async (req, res) => {
     const { id } = req.params;
     const { date, description, type, amount } = req.body;
 
@@ -96,8 +123,8 @@ app.put('/api/transactions/:id', (req, res) => {
     }
 
     try {
-        // Validate Loan Logic (Excluding current transaction from calculation to allow update)
-        validateLoanPayment(type, amount, id);
+        // Validate Loan Logic
+        await validateLoanPayment(type, amount, id);
 
         const entries = generateEntriesFromType(type, amount);
 
@@ -106,6 +133,7 @@ app.put('/api/transactions/:id', (req, res) => {
         }
 
         const updatedTransaction = {
+            id, // Require id for logic
             date,
             description,
             type,
@@ -114,7 +142,7 @@ app.put('/api/transactions/:id', (req, res) => {
             timestamp: new Date().toISOString() // Update timestamp
         };
 
-        const result = updateTransaction(id, updatedTransaction);
+        const result = await updateTransaction(id, updatedTransaction);
         if (!result) {
             return res.status(404).json({ error: 'Transaction not found' });
         }
@@ -125,15 +153,19 @@ app.put('/api/transactions/:id', (req, res) => {
     }
 });
 
-app.delete('/api/transactions/:id', (req, res) => {
+app.delete('/api/transactions/:id', async (req, res) => {
     const { id } = req.params;
-    const result = deleteTransaction(id);
+    try {
+        const result = await deleteTransaction(id);
 
-    if (!result) {
-        return res.status(404).json({ error: 'Transaction not found' });
+        if (!result) {
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-
-    res.status(204).send();
 });
 
 
@@ -144,3 +176,4 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
