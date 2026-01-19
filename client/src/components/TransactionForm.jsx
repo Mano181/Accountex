@@ -64,7 +64,7 @@ export default function TransactionForm() {
                         <label className="block text-sm text-text-secondary mb-1">Date</label>
                         <input
                             type="date"
-                            className="w-full p-2 rounded bg-background border border-border focus:border-primary outline-none"
+                            className="w-full p-2 h-[42px] rounded bg-background border border-border focus:border-primary outline-none"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
                         />
@@ -75,7 +75,7 @@ export default function TransactionForm() {
                     <label className="block text-sm text-text-secondary mb-1">Description</label>
                     <input
                         type="text"
-                        className="w-full p-2 rounded bg-background border border-border focus:border-primary outline-none"
+                        className="w-full p-2 h-[42px] rounded bg-background border border-border focus:border-primary outline-none"
                         placeholder="e.g. Sales to Client A"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
@@ -100,7 +100,7 @@ export default function TransactionForm() {
                         <label className="block text-sm text-text-secondary mb-1">Amount</label>
                         <input
                             type="number"
-                            className="w-full p-2 rounded bg-background border border-border focus:border-primary outline-none"
+                            className="w-full p-2 h-[42px] rounded bg-background border border-border focus:border-primary outline-none"
                             placeholder="0.00"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
