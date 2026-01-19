@@ -13,7 +13,8 @@ function AppContent() {
   const location = useLocation();
 
   // Check if we are on an authentication page
-  const isAuthPage = location.pathname.startsWith('/sign-in') || location.pathname.startsWith('/sign-up');
+  // Check if we are on an authentication page
+  const isAuthPage = ['/sign-in', '/sign-up'].some(path => location.pathname.startsWith(path));
 
   return (
     <div className="min-h-screen flex flex-col">
