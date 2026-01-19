@@ -1,16 +1,7 @@
 import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
-import { TRANSACTION_TYPES } from '../lib/constants';
-
-const TYPE_LABELS = {
-    [TRANSACTION_TYPES.SALES]: 'Sales',
-    [TRANSACTION_TYPES.PAYMENT_RECEIVED]: 'Payment Received',
-    [TRANSACTION_TYPES.PURCHASE]: 'Purchase',
-    [TRANSACTION_TYPES.PURCHASE_PAYMENT]: 'Purchase Payment',
-    [TRANSACTION_TYPES.EXPENSE]: 'Expense',
-    [TRANSACTION_TYPES.LOAN_TAKEN]: 'Loan Taken'
-};
+import { TRANSACTION_TYPES, TYPE_LABELS } from '../lib/constants';
 
 export default function TransactionForm() {
     const { addTransaction } = useTransactions();
