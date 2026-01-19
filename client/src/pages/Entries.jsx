@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Save, Edit2, Trash2, Download } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES } from '../lib/constants';

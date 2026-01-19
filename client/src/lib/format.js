@@ -15,6 +15,15 @@ export const formatCurrency = (amount, showSign = false) => {
     return formatted;
 };
 
+export const formatDate = (dateVal) => {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'string') {
+        const d = dateVal.includes('T') ? dateVal.split('T')[0] : dateVal;
+        return new Date(d).toLocaleDateString();
+    }
+    return new Date(dateVal).toLocaleDateString();
+};
+
 // Transaction type labels
 export const TYPE_LABELS = {
     SALES: 'Sales',
