@@ -2,8 +2,9 @@ import { useTransactions } from '../context/TransactionContext';
 import { useAuth } from '@clerk/clerk-react';
 import { formatCurrency } from '../lib/format';
 import { getGuestBalanceSheet } from '../lib/guestAccounting';
+import { generateBalanceSheetPDF } from '../lib/pdf';
 import { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Download } from 'lucide-react';
 
 export default function BalanceSheetReport() {
     const { transactions, loading } = useTransactions();
@@ -52,11 +53,21 @@ export default function BalanceSheetReport() {
     return (
         <div className="bg-surface rounded-lg border border-border overflow-hidden max-w-2xl mx-auto">
             {/* Header */}
-            <div className="bg-surface-highlight px-6 py-4 border-b border-border text-center">
-                <h2 className="text-lg font-bold">Balance Sheet</h2>
-                <p className="text-xs text-text-secondary mt-1">
-                    {isSignedIn ? 'Real-time Database' : 'Guest Session Data'}
-                </p>
+            <div className="bg-surface-highlight px-6 py-4 border-b border-border flex justify-between items-center">
+                <div className="text-left">
+                    <h2 className="text-lg font-bold">Balance Sheet</h2>
+                    <p className="text-xs text-text-secondary mt-1">
+                        {isSignedIn ? 'Real-time Database' : 'Guest Session Data'}
+                    </p>
+                </div>
+                <button
+                    onClick={() => generateBalanceSheetPDF(reportData)}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-surface hover:bg-background text-text-secondary hover:text-primary rounded border border-border transition-colors text-xs font-medium shadow-sm"
+                    title="Download PDF"
+                >
+                    <Download size={14} />
+                    Download PDF
+                </button>
             </div>
 
             {/* Report Body */}

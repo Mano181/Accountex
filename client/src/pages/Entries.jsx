@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Save, Edit2, Trash2 } from 'lucide-react';
+import { Save, Edit2, Trash2, Download } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES } from '../lib/constants';
 import { formatCurrency, TYPE_LABELS } from '../lib/format';
+import { generateTransactionPDF } from '../lib/pdf';
 
 const formatDate = (dateVal) => {
     if (!dateVal) return '';
@@ -160,8 +160,17 @@ export default function Entries() {
 
             {/* Transaction Table */}
             <div className="bg-surface rounded-lg border border-border overflow-hidden">
-                <div className="px-6 py-4 border-b border-border">
+                <div className="px-6 py-4 border-b border-border flex justify-between items-center">
                     <h2 className="text-lg font-semibold text-text-primary">Transaction History</h2>
+                    <button
+                        onClick={() => generateTransactionPDF(transactions)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-surface-highlight hover:bg-surface text-text-secondary hover:text-primary rounded border border-border transition-colors text-xs font-medium"
+                        title="Download PDF"
+                        disabled={transactions.length === 0}
+                    >
+                        <Download size={14} />
+                        Download PDF
+                    </button>
                 </div>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
