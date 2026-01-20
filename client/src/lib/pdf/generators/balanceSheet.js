@@ -7,7 +7,7 @@ export const generateBalanceSheetPDF = (data) => {
     const doc = createDoc();
     const { margin } = PDF_THEME.layout;
 
-    let currentY = addHeader(doc, 'Balance Sheet', `As at ${new Date().toLocaleDateString()}`);
+    let currentY = addHeader(doc, 'BALANCE SHEET', `As at ${new Date().toLocaleDateString()}`);
 
     const drawLine = (y) => {
         doc.setDrawColor(0);
@@ -18,7 +18,7 @@ export const generateBalanceSheetPDF = (data) => {
     const printHeader = (title, y) => {
         doc.setFontSize(PDF_THEME.fonts.header.size);
         doc.setFont(undefined, 'bold');
-        doc.text(title, margin, y);
+        doc.text(title.toUpperCase(), margin, y); // Uppercase for statutory look
         return y + 6;
     };
 
@@ -30,7 +30,7 @@ export const generateBalanceSheetPDF = (data) => {
         doc.text(formatCurrency(amount), doc.internal.pageSize.width - margin, y, { align: 'right' });
 
         if (doubleUnderline) {
-            doc.setLineWidth(0.5);
+            doc.setLineWidth(0.4);
             doc.line(margin, y + 2, doc.internal.pageSize.width - margin, y + 2);
             doc.line(margin, y + 3.5, doc.internal.pageSize.width - margin, y + 3.5);
             return y + 15;
@@ -47,8 +47,8 @@ export const generateBalanceSheetPDF = (data) => {
         body: assetsData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin + 5, right: margin }, // Indent assets
-        styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2 },
+        margin: { left: margin + 5, right: margin }, // Indent line items
+        styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2, textColor: PDF_THEME.colors.text.primary },
         columnStyles: { 1: { halign: 'right' } }
     });
 
@@ -63,7 +63,7 @@ export const generateBalanceSheetPDF = (data) => {
     // Liabilities Section
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
-    doc.text('Liabilities', margin + 5, currentY);
+    doc.text('LIABILITIES', margin + 5, currentY); // Uppercase subsection
     currentY += 6;
 
     const liabilitiesData = data.liabilities.map(item => [item.name, formatCurrency(item.amount)]);
@@ -72,22 +72,23 @@ export const generateBalanceSheetPDF = (data) => {
         body: liabilitiesData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin + 5, right: margin },
-        styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2 },
+        margin: { left: margin + 10, right: margin }, // Double indent for subsection
+        styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2, textColor: PDF_THEME.colors.text.primary },
         columnStyles: { 1: { halign: 'right' } }
     });
 
     currentY = doc.lastAutoTable.finalY + 6;
     // Subtotal Liabilities
     doc.setFontSize(10);
-    doc.setFont(undefined, 'italic');
+    doc.setFont(undefined, 'normal'); // Normal weight for sub-total
     doc.text(`Total Liabilities: ${formatCurrency(data.totalLiabilities)}`, doc.internal.pageSize.width - margin, currentY, { align: 'right' });
+    drawLine(currentY + 2); // Small line
     currentY += 10;
 
     // Equity Section
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
-    doc.text('Equity', margin + 5, currentY);
+    doc.text('EQUITY', margin + 5, currentY); // Uppercase subsection
     currentY += 6;
 
     const equityData = data.equity.map(item => [item.name, formatCurrency(item.amount)]);
@@ -99,8 +100,8 @@ export const generateBalanceSheetPDF = (data) => {
         body: equityData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin + 5, right: margin },
-        styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2 },
+        margin: { left: margin + 10, right: margin }, // Double indent
+        styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2, textColor: PDF_THEME.colors.text.primary },
         columnStyles: { 1: { halign: 'right' } }
     });
 

@@ -8,7 +8,7 @@ export const generateProfitLossPDF = (data) => {
     const { margin } = PDF_THEME.layout;
 
     // Header
-    let currentY = addHeader(doc, 'Profit & Loss Statement', `For the period ending ${new Date().toLocaleDateString()}`);
+    let currentY = addHeader(doc, 'PROFIT AND LOSS STATEMENT', `For the period ending ${new Date().toLocaleDateString()}`);
 
     // Helpers
     const drawLine = (y, thickness = 0.1) => {
@@ -21,7 +21,7 @@ export const generateProfitLossPDF = (data) => {
         doc.setFontSize(PDF_THEME.fonts.header.size);
         doc.setFont(undefined, 'bold');
         doc.setTextColor(...PDF_THEME.colors.text.primary);
-        doc.text(title, margin, y);
+        doc.text(title.toUpperCase(), margin, y); // Uppercase for statutory look
         return y + 8;
     };
 
@@ -34,17 +34,11 @@ export const generateProfitLossPDF = (data) => {
         doc.text(label, margin, y);
 
         const amountStr = formatCurrency(amount);
-        const amountWidth = doc.getStringUnitWidth(amountStr) * PDF_THEME.fonts.total.size / doc.internal.scaleFactor;
-        const xPos = doc.internal.pageSize.width - margin - amountWidth; // Right align manually if needed, or stick to table
-
-        // Using autoTable for totals to ensure perfect alignment with columns is easier
-        // But for "industry standard" usually totals are free-floating or aligned.
-        // Let's use a simple 2-col visual alignment.
         doc.text(amountStr, doc.internal.pageSize.width - margin, y, { align: 'right' });
 
         if (doubleUnderline) {
-            drawLine(y + 2, 0.5);
-            drawLine(y + 3.5, 0.5);
+            drawLine(y + 2, 0.4); // Thicker bottom line
+            drawLine(y + 3.5, 0.4);
             return y + 15;
         }
 
@@ -59,12 +53,13 @@ export const generateProfitLossPDF = (data) => {
     autoTable(doc, {
         body: revenueData,
         startY: currentY,
-        theme: 'plain',
-        margin: { left: margin, right: margin },
+        theme: 'plain', // Clean look
+        margin: { left: margin + 5, right: margin }, // Indent items
         styles: {
             fontSize: PDF_THEME.fonts.body.size,
             cellPadding: 2,
-            textColor: PDF_THEME.colors.text.primary
+            textColor: PDF_THEME.colors.text.primary,
+            fontStyle: 'normal'
         },
         columnStyles: {
             0: { halign: 'left' },
@@ -80,15 +75,13 @@ export const generateProfitLossPDF = (data) => {
     // --- EXPENSES ---
     currentY = printSectionTitle('Expenses', currentY);
 
-    // Filter logic per request: Only Purchase, Other Expense (if they exist). 
-    // Since we must rely on data.expenses, we print what we have (Purchases).
     const expensesData = data.expenses.map(item => [item.name, formatCurrency(item.amount)]);
 
     autoTable(doc, {
         body: expensesData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin, right: margin },
+        margin: { left: margin + 5, right: margin }, // Indent items
         styles: {
             fontSize: PDF_THEME.fonts.body.size,
             cellPadding: 2,

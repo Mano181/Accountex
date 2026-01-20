@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <style>
+      .icon-blue { fill: #1e3a8a; }
+      .icon-green { fill: #10b981; }
+    </style>
+  </defs>
+  
+  <!-- Icon: Stylized 'A' with Growth Logic (Centered) -->
+  <g transform="translate(10, 10)">
+    <!-- Left Leg (Stable Foundation - Blue) -->
+    <path class="icon-blue" d="M15 80 L35 20 L55 80 L40 80 L35 60 L28 80 Z" />
+    
+    <!-- Rising Chart / Crossbar (Growth - Green) -->
+    <path class="icon-green" d="M20 60 L60 45 L70 55 L30 70 Z" />
+    
+    <!-- Right Peak (Arrow - Green) -->
+    <path class="icon-green" d="M48 35 L65 15 L75 45 Z" />
+  </g>
+</svg>

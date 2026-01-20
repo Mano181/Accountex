@@ -1,29 +1,29 @@
 export const PDF_THEME = {
     colors: {
-        primary: [33, 37, 41], // Almost Black for Titles
-        secondary: [108, 117, 125], // Grey for subtitles
-        accent: [41, 128, 185], // Subtle Blue for logic/branding if needed
+        primary: [0, 0, 0], // Strict Black for statutory titles
+        secondary: [80, 80, 80], // Dark Grey for subtitles
+        accent: [0, 0, 0],
         text: {
-            primary: [33, 37, 41], // Dark Grey/Black
-            secondary: [108, 117, 125], // Muted Grey
-            success: [33, 37, 41], // Standard accounting usually doesn't color totals green/red, just brackets. Keeping neutral.
-            danger: [33, 37, 41], // Standard accounting uses brackets () for negatives, not red.
+            primary: [0, 0, 0], // Black text
+            secondary: [60, 60, 60], // Dark Grey
+            success: [0, 0, 0],
+            danger: [0, 0, 0],
         },
         table: {
-            header: [248, 249, 250], // Very Light Grey
-            text: [33, 37, 41],
-            alternateRow: [255, 255, 255] // Plain white for clean print
+            header: [255, 255, 255], // White background for clean look
+            text: [0, 0, 0],
+            alternateRow: [255, 255, 255] // No alternating rows for statutory look
         }
     },
     fonts: {
-        title: { size: 20, style: 'bold' },
+        title: { size: 16, style: 'bold' }, // Slightly smaller, more formal title
         subtitle: { size: 10, style: 'normal' },
-        header: { size: 12, style: 'bold' },
+        header: { size: 10, style: 'bold' }, // Section headers
         body: { size: 10, style: 'normal' },
-        total: { size: 11, style: 'bold' }
+        total: { size: 10, style: 'bold' }
     },
     layout: {
-        margin: 20, // Wider margins for professional look
-        lineHeight: 8
+        margin: 20,
+        lineHeight: 6
     }
 };
