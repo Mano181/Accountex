@@ -14,9 +14,6 @@
     
     <!-- Rising Chart / Crossbar (Growth - Green) -->
     <path class="icon-green" d="M20 60 L60 45 L70 55 L30 70 Z" />
-    
-    <!-- Right Peak (Arrow - Green) -->
-    <path class="icon-green" d="M48 35 L65 15 L75 45 Z" />
   </g>
 
   <!-- Wordmark -->
