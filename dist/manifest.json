@@ -1,0 +1,22 @@
+{
+    "name": "Accountex",
+    "short_name": "Accountex",
+    "description": "Professional Accounting Application",
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "display": "standalone",
+    "icons": [
+        {
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/logo.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ],
+    "start_url": "/",
+    "orientation": "portrait"
+}

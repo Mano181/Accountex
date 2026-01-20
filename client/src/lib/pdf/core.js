@@ -32,6 +32,11 @@ export const addHeader = (doc, title, subtitle = 'Accounting Reports App') => {
     doc.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth / 2, margin + 6, { align: 'center' });
     doc.text(subtitle, pageWidth / 2, margin + 11, { align: 'center' });
 
+    // Version marker to verify deployment
+    doc.setFontSize(6);
+    doc.setTextColor(150, 150, 150);
+    doc.text('v2.0 (Statutory)', pageWidth - margin, doc.internal.pageSize.height - 5, { align: 'right' });
+
     // Separator Line
     doc.setDrawColor(...PDF_THEME.colors.secondary);
     doc.setLineWidth(0.1);
