@@ -27,7 +27,7 @@ function AppContent() {
         <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur">
           <div className="w-full px-0 py-3">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 px-4">
                 <button
                   type="button"
                   className="md:hidden p-2 rounded-md border border-border text-text-secondary hover:text-primary hover:bg-surface-highlight transition-colors"
@@ -38,11 +38,10 @@ function AppContent() {
                 </button>
                 <Link to="/" className="hover:opacity-80 transition-opacity">
                   <h1 className="text-xl sm:text-2xl font-bold text-primary">Accounts Manager</h1>
-                  <p className="hidden sm:block text-xs uppercase tracking-[0.2em] text-text-secondary">Business Ledger</p>
                 </Link>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 px-4">
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
