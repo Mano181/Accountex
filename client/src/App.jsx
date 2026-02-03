@@ -2,12 +2,13 @@ import { BrowserRouter, Routes, Route, NavLink, Link, useLocation } from 'react-
 import { useState } from 'react';
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useUser } from '@clerk/clerk-react';
 import Entries from './pages/Entries';
+import DashboardPage from './pages/Dashboard';
 import ProfitLossReport from './pages/ProfitLossReport';
 import BalanceSheetReport from './pages/BalanceSheetReport';
 import SignInPage from './pages/SignIn';
 import SignUpPage from './pages/SignUp';
 
-import { FileText, BarChart3, Scale, LogIn, AlertCircle, Menu, X } from 'lucide-react';
+import { FileText, BarChart3, Scale, LogIn, AlertCircle, Menu, X, LayoutDashboard } from 'lucide-react';
 
 function AppContent() {
   const { isSignedIn, isLoaded } = useUser();
@@ -80,6 +81,17 @@ function AppContent() {
                   <p className="px-2 text-[11px] uppercase tracking-[0.2em] text-text-secondary">Navigation</p>
                   <nav className="mt-3 space-y-1.5">
                     <NavLink
+                      to="/dashboard"
+                      end
+                      className={({ isActive }) =>
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <LayoutDashboard size={16} className="opacity-80 group-hover:opacity-100" />
+                      Dashboard
+                    </NavLink>
+                    <NavLink
                       to="/"
                       end
                       className={({ isActive }) =>
@@ -139,6 +151,18 @@ function AppContent() {
                   </div>
                   <nav className="mt-3 space-y-1.5">
                     <NavLink
+                      to="/dashboard"
+                      end
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <LayoutDashboard size={16} className="opacity-80 group-hover:opacity-100" />
+                      Dashboard
+                    </NavLink>
+                    <NavLink
                       to="/"
                       end
                       onClick={() => setMobileOpen(false)}
@@ -190,6 +214,7 @@ function AppContent() {
                   <Route path="/sign-up/*" element={<SignUpPage />} />
 
                   {/* Application Routes - Accessible by both Guests and Authenticated Users */}
+                  <Route path="/dashboard" element={<DashboardPage />} />
                   <Route path="/" element={<Entries />} />
                   <Route path="/profit-loss" element={<ProfitLossReport />} />
                   <Route path="/balance-sheet" element={<BalanceSheetReport />} />
