@@ -23,7 +23,7 @@ function AppContent() {
 
       {/* Header - Hidden on Auth Pages */}
       {!isAuthPage && (
-        <header className="bg-surface border-b border-border sticky top-0 z-20">
+        <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur">
           <div className="max-w-6xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -61,84 +61,118 @@ function AppContent() {
         <div className={isAuthPage ? '' : 'max-w-6xl mx-auto'}>
           <div className={isAuthPage ? '' : 'flex'}>
             {!isAuthPage && (
-              <aside className="hidden md:flex w-56 flex-col border-r border-border bg-surface px-3 py-6">
-                <nav className="space-y-2">
-                  <NavLink
-                    to="/"
-                    end
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                      }`
-                    }
-                  >
-                    <FileText size={16} />
-                    Entries
-                  </NavLink>
-                  <NavLink
-                    to="/profit-loss"
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                      }`
-                    }
-                  >
-                    <BarChart3 size={16} />
-                    P&L
-                  </NavLink>
-                  <NavLink
-                    to="/balance-sheet"
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                      }`
-                    }
-                  >
-                    <Scale size={16} />
-                    Balance Sheet
-                  </NavLink>
-                </nav>
+              <aside className="hidden md:flex w-60 flex-col border-r border-border bg-surface px-4 py-6">
+                <div className="flex items-center gap-3 px-2 pb-5 border-b border-border">
+                  <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                    AR
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-text-primary">Workspace</p>
+                    <p className="text-xs text-text-secondary">Main Ledger</p>
+                  </div>
+                </div>
+                <div className="pt-5">
+                  <p className="px-2 text-[11px] uppercase tracking-[0.2em] text-text-secondary">Navigation</p>
+                  <nav className="mt-3 space-y-1.5">
+                    <NavLink
+                      to="/"
+                      end
+                      className={({ isActive }) =>
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <FileText size={16} className="opacity-80 group-hover:opacity-100" />
+                      Entries
+                    </NavLink>
+                    <NavLink
+                      to="/profit-loss"
+                      className={({ isActive }) =>
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <BarChart3 size={16} className="opacity-80 group-hover:opacity-100" />
+                      P&L
+                    </NavLink>
+                    <NavLink
+                      to="/balance-sheet"
+                      className={({ isActive }) =>
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <Scale size={16} className="opacity-80 group-hover:opacity-100" />
+                      Balance Sheet
+                    </NavLink>
+                  </nav>
+                </div>
+                <div className="mt-auto pt-6 text-xs text-text-secondary">
+                  <div className="px-2 py-3 rounded-lg bg-surface-highlight border border-border">
+                    Ledger synced locally
+                  </div>
+                </div>
               </aside>
             )}
 
             {/* Mobile Sidebar Drawer */}
             {!isAuthPage && mobileOpen && (
               <div className="md:hidden fixed inset-0 z-30">
-                <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
-                <aside className="absolute left-0 top-0 h-full w-64 bg-surface border-r border-border px-4 py-6 shadow-lg">
-                  <nav className="space-y-2">
+                <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+                <aside className="absolute left-0 top-0 h-full w-72 bg-surface border-r border-border px-4 py-6 shadow-xl">
+                  <div className="flex items-center gap-3 pb-5 border-b border-border">
+                    <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                      AR
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">Workspace</p>
+                      <p className="text-xs text-text-secondary">Main Ledger</p>
+                    </div>
+                  </div>
+                  <div className="pt-5">
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-text-secondary">Navigation</p>
+                  </div>
+                  <nav className="mt-3 space-y-1.5">
                     <NavLink
                       to="/"
                       end
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                         }`
                       }
                     >
-                      <FileText size={16} />
+                      <FileText size={16} className="opacity-80 group-hover:opacity-100" />
                       Entries
                     </NavLink>
                     <NavLink
                       to="/profit-loss"
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                         }`
                       }
                     >
-                      <BarChart3 size={16} />
+                      <BarChart3 size={16} className="opacity-80 group-hover:opacity-100" />
                       P&L
                     </NavLink>
                     <NavLink
                       to="/balance-sheet"
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
-                        `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                         }`
                       }
                     >
-                      <Scale size={16} />
+                      <Scale size={16} className="opacity-80 group-hover:opacity-100" />
                       Balance Sheet
                     </NavLink>
                   </nav>
+                  <div className="mt-6 text-xs text-text-secondary">
+                    <div className="px-3 py-3 rounded-lg bg-surface-highlight border border-border">
+                      Ledger synced locally
+                    </div>
+                  </div>
                 </aside>
               </div>
             )}
