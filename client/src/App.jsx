@@ -178,16 +178,18 @@ function AppContent() {
             )}
 
             <div className={isAuthPage ? '' : 'flex-1 min-w-0 p-4 md:p-6 lg:p-8'}>
-              <Routes>
-                {/* Public/Auth Routes */}
-                <Route path="/sign-in/*" element={<SignInPage />} />
-                <Route path="/sign-up/*" element={<SignUpPage />} />
+              <div className={isAuthPage ? '' : 'max-w-6xl mx-auto w-full'}>
+                <Routes>
+                  {/* Public/Auth Routes */}
+                  <Route path="/sign-in/*" element={<SignInPage />} />
+                  <Route path="/sign-up/*" element={<SignUpPage />} />
 
-                {/* Application Routes - Accessible by both Guests and Authenticated Users */}
-                <Route path="/" element={<Entries />} />
-                <Route path="/profit-loss" element={<ProfitLossReport />} />
-                <Route path="/balance-sheet" element={<BalanceSheetReport />} />
-              </Routes>
+                  {/* Application Routes - Accessible by both Guests and Authenticated Users */}
+                  <Route path="/" element={<Entries />} />
+                  <Route path="/profit-loss" element={<ProfitLossReport />} />
+                  <Route path="/balance-sheet" element={<BalanceSheetReport />} />
+                </Routes>
+              </div>
             </div>
           </div>
         </div>
