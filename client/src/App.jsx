@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, NavLink, Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 import { SignedIn, SignedOut, RedirectToSignIn, UserButton, useUser } from '@clerk/clerk-react';
 import Entries from './pages/Entries';
 import ProfitLossReport from './pages/ProfitLossReport';
@@ -6,11 +7,12 @@ import BalanceSheetReport from './pages/BalanceSheetReport';
 import SignInPage from './pages/SignIn';
 import SignUpPage from './pages/SignUp';
 
-import { FileText, BarChart3, Scale, LogIn, AlertCircle } from 'lucide-react';
+import { FileText, BarChart3, Scale, LogIn, AlertCircle, Menu, X } from 'lucide-react';
 
 function AppContent() {
   const { isSignedIn, isLoaded } = useUser();
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   // Check if we are on an authentication page
   // Check if we are on an authentication page
@@ -21,19 +23,27 @@ function AppContent() {
 
       {/* Header - Hidden on Auth Pages */}
       {!isAuthPage && (
-        <header className="bg-surface border-b border-border sticky top-0 z-10">
-          <div className="max-w-5xl mx-auto px-4 py-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
+        <header className="bg-surface border-b border-border sticky top-0 z-20">
+          <div className="max-w-5xl mx-auto px-4 py-3">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="sm:hidden p-2 rounded-md border border-border text-text-secondary hover:text-primary hover:bg-surface-highlight transition-colors"
+                  onClick={() => setMobileOpen(prev => !prev)}
+                  aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                >
+                  {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+                </button>
                 <Link to="/" className="hover:opacity-80 transition-opacity">
-                  <h1 className="text-2xl font-bold text-primary">Accounting Reports</h1>
-                  <p className="text-sm text-text-secondary">Double Entry System</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-primary">Accounting Reports</h1>
+                  <p className="hidden sm:block text-sm text-text-secondary">Double Entry System</p>
                 </Link>
               </div>
 
-              <div className="flex items-center gap-4">
-                {/* Navigation Tabs */}
-                <nav className="flex bg-background rounded-lg p-1 border border-border">
+              <div className="flex items-center gap-3">
+                {/* Desktop Navigation Tabs */}
+                <nav className="hidden sm:flex bg-background rounded-lg p-1 border border-border">
                   <NavLink
                     to="/"
                     end
@@ -43,7 +53,7 @@ function AppContent() {
                     }
                   >
                     <FileText size={16} />
-                    <span className="hidden sm:inline">Entries</span>
+                    <span>Entries</span>
                   </NavLink>
                   <NavLink
                     to="/profit-loss"
@@ -53,7 +63,7 @@ function AppContent() {
                     }
                   >
                     <BarChart3 size={16} />
-                    <span className="hidden sm:inline">P&L</span>
+                    <span>P&L</span>
                   </NavLink>
                   <NavLink
                     to="/balance-sheet"
@@ -63,7 +73,7 @@ function AppContent() {
                     }
                   >
                     <Scale size={16} />
-                    <span className="hidden sm:inline">Balance Sheet</span>
+                    <span>Balance Sheet</span>
                   </NavLink>
                 </nav>
 
@@ -79,6 +89,48 @@ function AppContent() {
               </div>
             </div>
           </div>
+
+          {/* Mobile Nav Drawer */}
+          {mobileOpen && (
+            <div className="sm:hidden border-t border-border bg-surface">
+              <nav className="px-4 py-3 space-y-2">
+                <NavLink
+                  to="/"
+                  end
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                    }`
+                  }
+                >
+                  <FileText size={16} />
+                  Entries
+                </NavLink>
+                <NavLink
+                  to="/profit-loss"
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                    }`
+                  }
+                >
+                  <BarChart3 size={16} />
+                  P&L
+                </NavLink>
+                <NavLink
+                  to="/balance-sheet"
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                    }`
+                  }
+                >
+                  <Scale size={16} />
+                  Balance Sheet
+                </NavLink>
+              </nav>
+            </div>
+          )}
         </header>
       )}
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Edit2, Trash2, Download } from 'lucide-react';
+import { Save, Edit2, Trash2, Download, Plus } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES } from '../lib/constants';
 import { formatCurrency, TYPE_LABELS } from '../lib/format';
@@ -92,7 +92,7 @@ export default function Entries() {
             <Dashboard />
 
             {/* Entry Form */}
-            <div className={`rounded-lg p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
+            <div id="entry-form" className={`rounded-lg p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
                 <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold text-text-primary">
                         {editingId ? 'Edit Entry' : 'New Entry'}
@@ -109,6 +109,7 @@ export default function Entries() {
                         <label className="block text-xs text-text-secondary mb-1 uppercase tracking-wide">Date</label>
                         <input
                             type="date"
+                            id="entry-date"
                             className="w-full p-2.5 rounded bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
@@ -227,6 +228,25 @@ export default function Entries() {
                     </table>
                 </div>
             </div>
+
+            {/* Mobile Quick Action */}
+            <button
+                type="button"
+                className="sm:hidden fixed bottom-6 right-6 z-30 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary-hover transition-colors"
+                onClick={() => {
+                    const form = document.getElementById('entry-form');
+                    const dateInput = document.getElementById('entry-date');
+                    if (form) {
+                        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                    if (dateInput) {
+                        dateInput.focus({ preventScroll: true });
+                    }
+                }}
+            >
+                <Plus size={16} />
+                New Entry
+            </button>
         </div>
     );
 }
