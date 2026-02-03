@@ -23,6 +23,12 @@ const CATEGORIES = {
         normalBalance: 'DEBIT',
         label: 'Accounts Receivable'
     },
+    'Inventory': {
+        report: 'BS',
+        type: 'ASSET',
+        normalBalance: 'DEBIT',
+        label: 'Inventory'
+    },
     // LIABILITIES
     'Accounts Payable': {
         report: 'BS',
@@ -43,6 +49,13 @@ const CATEGORIES = {
         normalBalance: 'CREDIT',
         label: 'Owner Capital'
     },
+    'Owner Drawings': {
+        report: 'BS',
+        type: 'EQUITY',
+        normalBalance: 'DEBIT',
+        contra: true,
+        label: 'Owner Drawings'
+    },
     'Retained Earnings': {
         report: 'BS',
         type: 'EQUITY',
@@ -56,18 +69,24 @@ const CATEGORIES = {
         normalBalance: 'CREDIT',
         label: 'Sales Revenue'
     },
-    'Service Revenue': {
-        report: 'PL',
-        type: 'REVENUE',
-        normalBalance: 'CREDIT',
-        label: 'Service Revenue'
-    },
     // EXPENSES
-    'Purchases': {
+    'Cost of Goods Sold': {
         report: 'PL',
         type: 'EXPENSE',
         normalBalance: 'DEBIT',
-        label: 'Purchases'
+        label: 'Cost of Goods Sold'
+    },
+    'Transport Expense': {
+        report: 'PL',
+        type: 'EXPENSE',
+        normalBalance: 'DEBIT',
+        label: 'Transport Expense'
+    },
+    'Operating Expenses': {
+        report: 'PL',
+        type: 'EXPENSE',
+        normalBalance: 'DEBIT',
+        label: 'Operating Expenses'
     }
 };
 

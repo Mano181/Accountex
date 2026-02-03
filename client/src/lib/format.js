@@ -26,11 +26,14 @@ export const formatDate = (dateVal) => {
 
 // Transaction type labels
 export const TYPE_LABELS = {
-    SALES: 'Sales',
-    PAYMENT_RECEIVED: 'Payment Received',
-    PURCHASE: 'Purchase',
-    PURCHASE_PAYMENT: 'Purchase Payment',
-    EXPENSE: 'Expense',
+    SALES_INVOICE: 'Sales Invoice (Credit)',
+    CUSTOMER_PAYMENT: 'Customer Payment',
+    PURCHASE_INVOICE: 'Purchase Invoice (Credit)',
+    VENDOR_PAYMENT: 'Vendor Payment',
+    EXPENSE: 'Expense (Cash)',
+    COGS_ADJUSTMENT: 'Record COGS',
+    CAPITAL_INTRODUCED: 'Owner Capital Added',
+    DRAWINGS: 'Owner Drawings',
     LOAN_TAKEN: 'Loan Taken',
-    LOAN_PAID: 'Loan Repaid'
+    LOAN_PAID: 'Loan Repayment'
 };

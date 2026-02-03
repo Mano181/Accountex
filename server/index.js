@@ -73,9 +73,20 @@ const validateLoanPayment = async (userId, type, amount, excludeId = null) => {
     }
 };
 
+const requiresParty = (type) => {
+    return [
+        TRANSACTION_TYPES.SALES_INVOICE,
+        TRANSACTION_TYPES.CUSTOMER_PAYMENT,
+        TRANSACTION_TYPES.PURCHASE_INVOICE,
+        TRANSACTION_TYPES.VENDOR_PAYMENT,
+        TRANSACTION_TYPES.LOAN_TAKEN,
+        TRANSACTION_TYPES.LOAN_PAID
+    ].includes(type);
+};
+
 app.post('/api/transactions', requireAuth(), async (req, res) => {
     const { userId } = req.auth;
-    const { date, description, type, amount } = req.body;
+    const { date, description, type, amount, partyName, partyType, expenseAccount } = req.body;
 
     if (!date || !description || !type || !amount) {
         return res.status(400).json({ error: 'Missing required fields: date, description, type, amount' });
@@ -90,10 +101,17 @@ app.post('/api/transactions', requireAuth(), async (req, res) => {
     }
 
     try {
+        if (requiresParty(type) && !partyName) {
+            return res.status(400).json({ error: 'Party name is required for this transaction type' });
+        }
+        if (type === TRANSACTION_TYPES.EXPENSE && !expenseAccount) {
+            return res.status(400).json({ error: 'Expense account is required for expenses' });
+        }
+
         // Validate Loan Logic
         await validateLoanPayment(userId, type, amount);
 
-        const entries = generateEntriesFromType(type, amount);
+        const entries = generateEntriesFromType(type, amount, { expenseAccount });
 
         // Accounting validation
         if (!validateTransaction(entries)) {
@@ -107,7 +125,10 @@ app.post('/api/transactions', requireAuth(), async (req, res) => {
             type,
             amount: parseFloat(amount),
             entries,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            party_name: partyName || null,
+            party_type: partyType || null,
+            expense_account: expenseAccount || null
         };
 
         const result = await addTransaction(newTransaction, userId);
@@ -120,7 +141,7 @@ app.post('/api/transactions', requireAuth(), async (req, res) => {
 app.put('/api/transactions/:id', requireAuth(), async (req, res) => {
     const { userId } = req.auth;
     const { id } = req.params;
-    const { date, description, type, amount } = req.body;
+    const { date, description, type, amount, partyName, partyType, expenseAccount } = req.body;
 
     if (!date || !description || !type || !amount) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -131,10 +152,17 @@ app.put('/api/transactions/:id', requireAuth(), async (req, res) => {
     }
 
     try {
+        if (requiresParty(type) && !partyName) {
+            return res.status(400).json({ error: 'Party name is required for this transaction type' });
+        }
+        if (type === TRANSACTION_TYPES.EXPENSE && !expenseAccount) {
+            return res.status(400).json({ error: 'Expense account is required for expenses' });
+        }
+
         // Validate Loan Logic
         await validateLoanPayment(userId, type, amount, id);
 
-        const entries = generateEntriesFromType(type, amount);
+        const entries = generateEntriesFromType(type, amount, { expenseAccount });
 
         if (!validateTransaction(entries)) {
             return res.status(500).json({ error: 'Internal Error: Generated entries do not balance' });
@@ -147,7 +175,10 @@ app.put('/api/transactions/:id', requireAuth(), async (req, res) => {
             type,
             amount: parseFloat(amount),
             entries,
-            timestamp: new Date().toISOString() // Update timestamp
+            timestamp: new Date().toISOString(), // Update timestamp
+            party_name: partyName || null,
+            party_type: partyType || null,
+            expense_account: expenseAccount || null
         };
 
         const result = await updateTransaction(id, updatedTransaction, userId);
@@ -185,4 +216,3 @@ if (require.main === module) {
 }
 
 module.exports = app;
-

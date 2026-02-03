@@ -5,41 +5,59 @@ export const CHART_OF_ACCOUNTS = getChartOfAccounts();
 export { ACCOUNT_TYPES };
 
 export const TRANSACTION_TYPES = {
-    SALES: 'SALES',
-    PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
-    PURCHASE: 'PURCHASE',
-    PURCHASE_PAYMENT: 'PURCHASE_PAYMENT',
+    SALES_INVOICE: 'SALES_INVOICE',
+    CUSTOMER_PAYMENT: 'CUSTOMER_PAYMENT',
+    PURCHASE_INVOICE: 'PURCHASE_INVOICE',
+    VENDOR_PAYMENT: 'VENDOR_PAYMENT',
     EXPENSE: 'EXPENSE',
+    COGS_ADJUSTMENT: 'COGS_ADJUSTMENT',
+    CAPITAL_INTRODUCED: 'CAPITAL_INTRODUCED',
+    DRAWINGS: 'DRAWINGS',
     LOAN_TAKEN: 'LOAN_TAKEN',
     LOAN_PAID: 'LOAN_PAID'
 };
 
-export const generateEntriesFromType = (type, amount) => {
+export const generateEntriesFromType = (type, amount, meta = {}) => {
     const amt = parseFloat(amount);
     switch (type) {
-        case TRANSACTION_TYPES.SALES:
+        case TRANSACTION_TYPES.SALES_INVOICE:
             return [
                 { account: 'Accounts Receivable', type: 'debit', amount: amt },
                 { account: 'Sales Revenue', type: 'credit', amount: amt }
             ];
-        case TRANSACTION_TYPES.PAYMENT_RECEIVED:
+        case TRANSACTION_TYPES.CUSTOMER_PAYMENT:
             return [
                 { account: 'Cash', type: 'debit', amount: amt },
                 { account: 'Accounts Receivable', type: 'credit', amount: amt }
             ];
-        case TRANSACTION_TYPES.PURCHASE:
+        case TRANSACTION_TYPES.PURCHASE_INVOICE:
             return [
-                { account: 'Purchases', type: 'debit', amount: amt },
+                { account: 'Inventory', type: 'debit', amount: amt },
                 { account: 'Accounts Payable', type: 'credit', amount: amt }
             ];
-        case TRANSACTION_TYPES.PURCHASE_PAYMENT:
+        case TRANSACTION_TYPES.VENDOR_PAYMENT:
             return [
                 { account: 'Accounts Payable', type: 'debit', amount: amt },
                 { account: 'Cash', type: 'credit', amount: amt }
             ];
         case TRANSACTION_TYPES.EXPENSE:
             return [
-                { account: 'Purchases', type: 'debit', amount: amt }, // All expenses map to Purchases per instructions
+                { account: meta.expenseAccount || 'Operating Expenses', type: 'debit', amount: amt },
+                { account: 'Cash', type: 'credit', amount: amt }
+            ];
+        case TRANSACTION_TYPES.COGS_ADJUSTMENT:
+            return [
+                { account: 'Cost of Goods Sold', type: 'debit', amount: amt },
+                { account: 'Inventory', type: 'credit', amount: amt }
+            ];
+        case TRANSACTION_TYPES.CAPITAL_INTRODUCED:
+            return [
+                { account: 'Cash', type: 'debit', amount: amt },
+                { account: 'Owner Capital', type: 'credit', amount: amt }
+            ];
+        case TRANSACTION_TYPES.DRAWINGS:
+            return [
+                { account: 'Owner Drawings', type: 'debit', amount: amt },
                 { account: 'Cash', type: 'credit', amount: amt }
             ];
         case TRANSACTION_TYPES.LOAN_TAKEN:
@@ -62,12 +80,19 @@ export const getAccountType = (accountName) => {
 };
 
 export const TYPE_LABELS = {
-    [TRANSACTION_TYPES.SALES]: 'Sales Revenue',
-    [TRANSACTION_TYPES.PAYMENT_RECEIVED]: 'Payment Received',
-    [TRANSACTION_TYPES.PURCHASE]: 'Purchase (Credit)',
-    [TRANSACTION_TYPES.PURCHASE_PAYMENT]: 'Purchase Payment',
-    [TRANSACTION_TYPES.EXPENSE]: 'Cash Expense',
+    [TRANSACTION_TYPES.SALES_INVOICE]: 'Sales Invoice (Credit)',
+    [TRANSACTION_TYPES.CUSTOMER_PAYMENT]: 'Customer Payment',
+    [TRANSACTION_TYPES.PURCHASE_INVOICE]: 'Purchase Invoice (Credit)',
+    [TRANSACTION_TYPES.VENDOR_PAYMENT]: 'Vendor Payment',
+    [TRANSACTION_TYPES.EXPENSE]: 'Expense (Cash)',
+    [TRANSACTION_TYPES.COGS_ADJUSTMENT]: 'Record COGS',
+    [TRANSACTION_TYPES.CAPITAL_INTRODUCED]: 'Owner Capital Added',
+    [TRANSACTION_TYPES.DRAWINGS]: 'Owner Drawings',
     [TRANSACTION_TYPES.LOAN_TAKEN]: 'Loan Taken',
     [TRANSACTION_TYPES.LOAN_PAID]: 'Loan Repayment'
 };
 
+export const EXPENSE_ACCOUNTS = [
+    'Transport Expense',
+    'Operating Expenses'
+];

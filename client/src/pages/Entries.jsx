@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Save, Edit2, Trash2, Download, Plus } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
-import { TRANSACTION_TYPES } from '../lib/constants';
+import { TRANSACTION_TYPES, EXPENSE_ACCOUNTS } from '../lib/constants';
 import { formatCurrency, TYPE_LABELS } from '../lib/format';
 import { generateTransactionPDF } from '../lib/pdf';
 import Dashboard from '../components/Dashboard';
@@ -25,6 +25,8 @@ export default function Entries() {
     const [description, setDescription] = useState('');
     const [type, setType] = useState('');
     const [amount, setAmount] = useState('');
+    const [partyName, setPartyName] = useState('');
+    const [expenseAccount, setExpenseAccount] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,6 +37,8 @@ export default function Entries() {
         setDescription(tx.description);
         setType(tx.type);
         setAmount(tx.amount.toString());
+        setPartyName(tx.party_name || tx.partyName || '');
+        setExpenseAccount(tx.expense_account || tx.expenseAccount || '');
         setError('');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -45,8 +49,34 @@ export default function Entries() {
         setDescription('');
         setType('');
         setAmount('');
+        setPartyName('');
+        setExpenseAccount('');
         setError('');
     };
+
+    const requiresParty = [
+        TRANSACTION_TYPES.SALES_INVOICE,
+        TRANSACTION_TYPES.CUSTOMER_PAYMENT,
+        TRANSACTION_TYPES.PURCHASE_INVOICE,
+        TRANSACTION_TYPES.VENDOR_PAYMENT,
+        TRANSACTION_TYPES.LOAN_TAKEN,
+        TRANSACTION_TYPES.LOAN_PAID
+    ].includes(type);
+
+    const requiresExpenseAccount = type === TRANSACTION_TYPES.EXPENSE;
+
+    const partyLabel = (() => {
+        if (type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT) {
+            return 'Store / Customer';
+        }
+        if (type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT) {
+            return 'Store / Supplier';
+        }
+        if (type === TRANSACTION_TYPES.LOAN_TAKEN || type === TRANSACTION_TYPES.LOAN_PAID) {
+            return 'Lender';
+        }
+        return 'Party';
+    })();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -54,6 +84,16 @@ export default function Entries() {
 
         if (!type || !amount || !description) {
             setError('All fields are required');
+            return;
+        }
+
+        if (requiresParty && !partyName.trim()) {
+            setError('Please enter the store/party name');
+            return;
+        }
+
+        if (requiresExpenseAccount && !expenseAccount) {
+            setError('Please choose an expense account');
             return;
         }
 
@@ -71,7 +111,22 @@ export default function Entries() {
 
         setLoading(true);
         try {
-            const transactionData = { date, description, type, amount: val };
+            const partyType = (() => {
+                if (type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT) return 'CUSTOMER';
+                if (type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT) return 'VENDOR';
+                if (type === TRANSACTION_TYPES.LOAN_TAKEN || type === TRANSACTION_TYPES.LOAN_PAID) return 'LENDER';
+                return null;
+            })();
+
+            const transactionData = {
+                date,
+                description,
+                type,
+                amount: val,
+                partyName: partyName.trim() || null,
+                partyType,
+                expenseAccount: expenseAccount || null
+            };
 
             if (editingId) {
                 await updateTransaction(editingId, transactionData);
@@ -125,6 +180,33 @@ export default function Entries() {
                             onChange={(e) => setDescription(e.target.value)}
                         />
                     </div>
+                    {requiresParty && (
+                        <div>
+                            <label className="block text-xs text-text-secondary mb-1 uppercase tracking-wide">{partyLabel}</label>
+                            <input
+                                type="text"
+                                className="w-full p-2.5 rounded bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
+                                placeholder="e.g. Store A"
+                                value={partyName}
+                                onChange={(e) => setPartyName(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    {requiresExpenseAccount && (
+                        <div>
+                            <label className="block text-xs text-text-secondary mb-1 uppercase tracking-wide">Expense Account</label>
+                            <select
+                                className="w-full p-2.5 rounded bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
+                                value={expenseAccount}
+                                onChange={(e) => setExpenseAccount(e.target.value)}
+                            >
+                                <option value="">Select Account</option>
+                                {EXPENSE_ACCOUNTS.map(account => (
+                                    <option key={account} value={account}>{account}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <label className="block text-xs text-text-secondary mb-1 uppercase tracking-wide">Type</label>
                         <select
@@ -184,6 +266,7 @@ export default function Entries() {
                                 <th className="text-left p-4">Date</th>
                                 <th className="text-left p-4">Description</th>
                                 <th className="text-left p-4">Type</th>
+                                <th className="text-left p-4">Party</th>
                                 <th className="text-right p-4">Amount</th>
                                 <th className="text-center p-4">Action</th>
                             </tr>
@@ -194,6 +277,7 @@ export default function Entries() {
                                     <td className="p-4 text-text-secondary whitespace-nowrap">{formatDate(tx.date)}</td>
                                     <td className="p-4 font-medium">{tx.description}</td>
                                     <td className="p-4 text-text-secondary">{TYPE_LABELS[tx.type] || tx.type}</td>
+                                    <td className="p-4 text-text-secondary">{tx.party_name || tx.partyName || '-'}</td>
                                     <td className="p-4 text-right font-mono font-medium">{formatCurrency(tx.amount)}</td>
                                     <td className="p-4 text-center">
                                         <div className="flex items-center justify-center gap-2">
@@ -221,7 +305,7 @@ export default function Entries() {
                             ))}
                             {transactions.length === 0 && (
                                 <tr>
-                                    <td colSpan="5" className="p-8 text-center text-text-secondary">No entries found.</td>
+                                    <td colSpan="6" className="p-8 text-center text-text-secondary">No entries found.</td>
                                 </tr>
                             )}
                         </tbody>

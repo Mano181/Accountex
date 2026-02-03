@@ -32,8 +32,8 @@ const addTransaction = async (transaction, userId) => {
 
         // Insert Transaction with user_id
         const txQuery = `
-            INSERT INTO transactions (id, date, description, type, amount, timestamp, user_id)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            INSERT INTO transactions (id, date, description, type, amount, timestamp, user_id, party_name, party_type, expense_account)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *
         `;
         const txValues = [
@@ -43,7 +43,10 @@ const addTransaction = async (transaction, userId) => {
             transaction.type,
             transaction.amount,
             transaction.timestamp,
-            userId
+            userId,
+            transaction.party_name || null,
+            transaction.party_type || null,
+            transaction.expense_account || null
         ];
         const txResult = await client.query(txQuery, txValues);
 
@@ -88,8 +91,8 @@ const updateTransaction = async (id, updatedData, userId) => {
         // Update Transaction
         const txQuery = `
             UPDATE transactions 
-            SET date = $1, description = $2, type = $3, amount = $4, timestamp = $5
-            WHERE id = $6 AND user_id = $7
+            SET date = $1, description = $2, type = $3, amount = $4, timestamp = $5, party_name = $6, party_type = $7, expense_account = $8
+            WHERE id = $9 AND user_id = $10
             RETURNING *
         `;
         const txValues = [
@@ -98,6 +101,9 @@ const updateTransaction = async (id, updatedData, userId) => {
             updatedData.type,
             updatedData.amount,
             updatedData.timestamp,
+            updatedData.party_name || null,
+            updatedData.party_type || null,
+            updatedData.expense_account || null,
             id,
             userId
         ];

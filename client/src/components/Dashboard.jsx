@@ -6,15 +6,15 @@ import { TRANSACTION_TYPES } from '../lib/constants';
 import { ArrowDownRight, ArrowUpRight, Layers, Scale, TrendingUp, Wallet } from 'lucide-react';
 
 const INFLOW_TYPES = new Set([
-    TRANSACTION_TYPES.SALES,
-    TRANSACTION_TYPES.PAYMENT_RECEIVED,
+    TRANSACTION_TYPES.CUSTOMER_PAYMENT,
+    TRANSACTION_TYPES.CAPITAL_INTRODUCED,
     TRANSACTION_TYPES.LOAN_TAKEN
 ]);
 
 const OUTFLOW_TYPES = new Set([
-    TRANSACTION_TYPES.PURCHASE,
-    TRANSACTION_TYPES.PURCHASE_PAYMENT,
+    TRANSACTION_TYPES.VENDOR_PAYMENT,
     TRANSACTION_TYPES.EXPENSE,
+    TRANSACTION_TYPES.DRAWINGS,
     TRANSACTION_TYPES.LOAN_PAID
 ]);
 
@@ -76,6 +76,42 @@ export default function Dashboard() {
             totalEquity: bs.totalEquity,
             period: formatPeriod(dates)
         };
+    }, [transactions]);
+
+    const partyBalances = useMemo(() => {
+        const customers = {};
+        const vendors = {};
+
+        transactions.forEach(tx => {
+            const amount = parseFloat(tx.amount) || 0;
+            const party = tx.party_name || tx.partyName;
+            if (!party) return;
+
+            if (tx.type === TRANSACTION_TYPES.SALES_INVOICE) {
+                customers[party] = (customers[party] || 0) + amount;
+            }
+            if (tx.type === TRANSACTION_TYPES.CUSTOMER_PAYMENT) {
+                customers[party] = (customers[party] || 0) - amount;
+            }
+            if (tx.type === TRANSACTION_TYPES.PURCHASE_INVOICE) {
+                vendors[party] = (vendors[party] || 0) + amount;
+            }
+            if (tx.type === TRANSACTION_TYPES.VENDOR_PAYMENT) {
+                vendors[party] = (vendors[party] || 0) - amount;
+            }
+        });
+
+        const customerList = Object.entries(customers)
+            .map(([name, balance]) => ({ name, balance }))
+            .filter(item => Math.abs(item.balance) > 0.009)
+            .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+
+        const vendorList = Object.entries(vendors)
+            .map(([name, balance]) => ({ name, balance }))
+            .filter(item => Math.abs(item.balance) > 0.009)
+            .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+
+        return { customerList, vendorList };
     }, [transactions]);
 
     const recentTransactions = useMemo(() => {
@@ -177,6 +213,39 @@ export default function Dashboard() {
                         <span>Derived from entries</span>
                         <Layers size={14} />
                     </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="bg-surface rounded-lg border border-border p-4">
+                    <h3 className="text-sm font-semibold mb-3">Customer Balances</h3>
+                    {partyBalances.customerList.length === 0 ? (
+                        <p className="text-sm text-text-secondary">No customer balances yet.</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {partyBalances.customerList.slice(0, 5).map(item => (
+                                <div key={item.name} className="flex items-center justify-between text-sm">
+                                    <span>{item.name}</span>
+                                    <span className="font-mono">{formatCurrency(item.balance)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+                <div className="bg-surface rounded-lg border border-border p-4">
+                    <h3 className="text-sm font-semibold mb-3">Vendor Balances</h3>
+                    {partyBalances.vendorList.length === 0 ? (
+                        <p className="text-sm text-text-secondary">No vendor balances yet.</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {partyBalances.vendorList.slice(0, 5).map(item => (
+                                <div key={item.name} className="flex items-center justify-between text-sm">
+                                    <span>{item.name}</span>
+                                    <span className="font-mono">{formatCurrency(item.balance)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </section>

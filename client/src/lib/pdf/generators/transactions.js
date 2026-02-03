@@ -1,7 +1,7 @@
 import autoTable from 'jspdf-autotable';
 import { createDoc, addHeader, addFooter, saveOrOpenPDF } from '../core';
 import { PDF_THEME } from '../theme';
-import { formatCurrency, formatDate } from '../../format';
+import { formatCurrency, formatDate, TYPE_LABELS } from '../../format';
 
 export const generateTransactionPDF = (transactions) => {
     const doc = createDoc();
@@ -18,12 +18,13 @@ export const generateTransactionPDF = (transactions) => {
     const tableData = transactions.map(t => [
         formatDate(t.date),
         t.description,
-        t.type,
+        TYPE_LABELS[t.type] || t.type,
+        t.party_name || t.partyName || '-',
         formatCurrency(t.amount)
     ]);
 
     autoTable(doc, {
-        head: [['Date', 'Description', 'Type', 'Amount']],
+        head: [['Date', 'Description', 'Type', 'Party', 'Amount']],
         body: tableData,
         startY: startY + 6,
         theme: 'grid',
@@ -44,10 +45,11 @@ export const generateTransactionPDF = (transactions) => {
             fillColor: PDF_THEME.colors.table.alternateRow
         },
         columnStyles: {
-            0: { cellWidth: 30 }, // Date
+            0: { cellWidth: 26 }, // Date
             1: { cellWidth: 'auto' }, // Description
-            2: { cellWidth: 40 }, // Type
-            3: { cellWidth: 30, halign: 'right' } // Amount
+            2: { cellWidth: 36 }, // Type
+            3: { cellWidth: 30 }, // Party
+            4: { cellWidth: 28, halign: 'right' } // Amount
         }
     });
 

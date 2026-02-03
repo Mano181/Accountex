@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Save } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
-import { TRANSACTION_TYPES, TYPE_LABELS } from '../lib/constants';
+import { TRANSACTION_TYPES, TYPE_LABELS, EXPENSE_ACCOUNTS } from '../lib/constants';
 
 export default function TransactionForm() {
     const { addTransaction } = useTransactions();
@@ -9,6 +9,8 @@ export default function TransactionForm() {
     const [description, setDescription] = useState('');
     const [type, setType] = useState('');
     const [amount, setAmount] = useState('');
+    const [partyName, setPartyName] = useState('');
+    const [expenseAccount, setExpenseAccount] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -18,6 +20,25 @@ export default function TransactionForm() {
 
         if (!type || !amount || !description) {
             setError('All fields are required');
+            return;
+        }
+
+        const requiresParty = [
+            TRANSACTION_TYPES.SALES_INVOICE,
+            TRANSACTION_TYPES.CUSTOMER_PAYMENT,
+            TRANSACTION_TYPES.PURCHASE_INVOICE,
+            TRANSACTION_TYPES.VENDOR_PAYMENT,
+            TRANSACTION_TYPES.LOAN_TAKEN,
+            TRANSACTION_TYPES.LOAN_PAID
+        ].includes(type);
+
+        if (requiresParty && !partyName.trim()) {
+            setError('Please enter the store/party name');
+            return;
+        }
+
+        if (type === TRANSACTION_TYPES.EXPENSE && !expenseAccount) {
+            setError('Please choose an expense account');
             return;
         }
 
@@ -33,11 +54,16 @@ export default function TransactionForm() {
                 date,
                 description,
                 type,
-                amount: val
+                amount: val,
+                partyName: partyName.trim() || null,
+                partyType: requiresParty ? (type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT ? 'CUSTOMER' : (type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT ? 'VENDOR' : 'LENDER')) : null,
+                expenseAccount: expenseAccount || null
             });
             setDescription('');
             setAmount('');
             setType('');
+            setPartyName('');
+            setExpenseAccount('');
         } catch (err) {
             setError(err.message);
         } finally {
@@ -74,6 +100,33 @@ export default function TransactionForm() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {(type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT || type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT || type === TRANSACTION_TYPES.LOAN_TAKEN || type === TRANSACTION_TYPES.LOAN_PAID) && (
+                        <div>
+                            <label className="block text-sm text-text-secondary mb-1">Store / Party</label>
+                            <input
+                                type="text"
+                                className="w-full p-2 h-[42px] rounded bg-background border border-border focus:border-primary outline-none"
+                                placeholder="e.g. Store A"
+                                value={partyName}
+                                onChange={(e) => setPartyName(e.target.value)}
+                            />
+                        </div>
+                    )}
+                    {type === TRANSACTION_TYPES.EXPENSE && (
+                        <div>
+                            <label className="block text-sm text-text-secondary mb-1">Expense Account</label>
+                            <select
+                                className="w-full p-2 h-[42px] rounded bg-background border border-border focus:border-primary outline-none appearance-none"
+                                value={expenseAccount}
+                                onChange={(e) => setExpenseAccount(e.target.value)}
+                            >
+                                <option value="">Select Account</option>
+                                {EXPENSE_ACCOUNTS.map(account => (
+                                    <option key={account} value={account}>{account}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm text-text-secondary mb-1">Type</label>
                         <select

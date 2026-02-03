@@ -5,7 +5,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     description TEXT NOT NULL,
     type TEXT NOT NULL,
     amount NUMERIC(12, 2) NOT NULL,
-    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    user_id TEXT,
+    party_name TEXT,
+    party_type TEXT,
+    expense_account TEXT
 );
 
 -- Create Entries Table (Double Entry Lines)

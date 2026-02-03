@@ -90,7 +90,9 @@ export const getGuestBalanceSheet = (transactions) => {
 
     Object.entries(CATEGORIES).forEach(([name, meta]) => {
         if (meta.report === 'BS') {
-            const item = { name, amount: balances[name] || 0 };
+            const rawAmount = balances[name] || 0;
+            const amount = meta.contra ? -rawAmount : rawAmount;
+            const item = { name, amount };
             if (meta.type === 'ASSET') assets.push(item);
             else if (meta.type === 'LIABILITY') liabilities.push(item);
             else if (meta.type === 'EQUITY') equity.push(item);
