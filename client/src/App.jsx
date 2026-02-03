@@ -24,7 +24,7 @@ function AppContent() {
       {/* Header - Hidden on Auth Pages */}
       {!isAuthPage && (
         <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur">
-          <div className="w-full px-4 py-3">
+          <div className="w-full px-0 sm:px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <button
