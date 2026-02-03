@@ -1,5 +1,5 @@
 import autoTable from 'jspdf-autotable';
-import { createDoc, addHeader, saveOrOpenPDF } from '../core';
+import { createDoc, addHeader, addFooter, saveOrOpenPDF } from '../core';
 import { PDF_THEME } from '../theme';
 import { formatCurrency } from '../../format';
 
@@ -7,19 +7,20 @@ export const generateBalanceSheetPDF = (data) => {
     const doc = createDoc();
     const { margin } = PDF_THEME.layout;
 
-    let currentY = addHeader(doc, 'BALANCE SHEET', `As at ${new Date().toLocaleDateString()}`);
+    let currentY = addHeader(doc, 'Balance Sheet', `As at ${new Date().toLocaleDateString()}`);
 
     const drawLine = (y) => {
-        doc.setDrawColor(0);
-        doc.setLineWidth(0.1);
+        doc.setDrawColor(...PDF_THEME.colors.border);
+        doc.setLineWidth(0.2);
         doc.line(margin, y, doc.internal.pageSize.width - margin, y);
     };
 
     const printHeader = (title, y) => {
         doc.setFontSize(PDF_THEME.fonts.header.size);
         doc.setFont(undefined, 'bold');
-        doc.text(title.toUpperCase(), margin, y); // Uppercase for statutory look
-        return y + 6;
+        doc.text(title.toUpperCase(), margin, y);
+        drawLine(y + 2);
+        return y + 8;
     };
 
     const printTotal = (label, amount, y, doubleUnderline = false) => {
@@ -44,11 +45,17 @@ export const generateBalanceSheetPDF = (data) => {
     const assetsData = data.assets.map(item => [item.name, formatCurrency(item.amount)]);
 
     autoTable(doc, {
+        head: [['Account', 'Amount']],
         body: assetsData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin + 5, right: margin }, // Indent line items
+        margin: { left: margin + 5, right: margin },
         styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2, textColor: PDF_THEME.colors.text.primary },
+        headStyles: {
+            fillColor: PDF_THEME.colors.table.header,
+            textColor: PDF_THEME.colors.text.primary,
+            fontStyle: 'bold'
+        },
         columnStyles: { 1: { halign: 'right' } }
     });
 
@@ -69,11 +76,17 @@ export const generateBalanceSheetPDF = (data) => {
     const liabilitiesData = data.liabilities.map(item => [item.name, formatCurrency(item.amount)]);
 
     autoTable(doc, {
+        head: [['Account', 'Amount']],
         body: liabilitiesData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin + 10, right: margin }, // Double indent for subsection
+        margin: { left: margin + 10, right: margin },
         styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2, textColor: PDF_THEME.colors.text.primary },
+        headStyles: {
+            fillColor: PDF_THEME.colors.table.header,
+            textColor: PDF_THEME.colors.text.primary,
+            fontStyle: 'bold'
+        },
         columnStyles: { 1: { halign: 'right' } }
     });
 
@@ -97,11 +110,17 @@ export const generateBalanceSheetPDF = (data) => {
     }
 
     autoTable(doc, {
+        head: [['Account', 'Amount']],
         body: equityData,
         startY: currentY,
         theme: 'plain',
-        margin: { left: margin + 10, right: margin }, // Double indent
+        margin: { left: margin + 10, right: margin },
         styles: { fontSize: PDF_THEME.fonts.body.size, cellPadding: 2, textColor: PDF_THEME.colors.text.primary },
+        headStyles: {
+            fillColor: PDF_THEME.colors.table.header,
+            textColor: PDF_THEME.colors.text.primary,
+            fontStyle: 'bold'
+        },
         columnStyles: { 1: { halign: 'right' } }
     });
 
@@ -110,5 +129,6 @@ export const generateBalanceSheetPDF = (data) => {
     // Grand Total
     currentY = printTotal('Total Liabilities & Equity', data.totalLiabilities + data.totalEquity, currentY, true);
 
+    addFooter(doc);
     saveOrOpenPDF(doc, `balance_sheet_${new Date().toISOString().split('T')[0]}.pdf`);
 };

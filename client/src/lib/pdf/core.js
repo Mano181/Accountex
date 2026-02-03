@@ -1,6 +1,13 @@
 import jsPDF from 'jspdf';
 import { PDF_THEME } from './theme';
 
+const formatReportDate = (date = new Date()) => {
+    return date.toLocaleString('en-US', {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+    });
+};
+
 /**
  * Creates a new jsPDF instance with default settings
  */
@@ -19,30 +26,55 @@ export const addHeader = (doc, title, subtitle = 'Accounting Reports App') => {
     const pageWidth = doc.internal.pageSize.width;
     const { margin } = PDF_THEME.layout;
 
-    // Main Title
-    doc.setTextColor(...PDF_THEME.colors.primary);
+    // Brand line
+    doc.setTextColor(...PDF_THEME.colors.text.secondary);
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.text('Accounting Reports', margin, margin - 4);
+
+    // Title
+    doc.setTextColor(...PDF_THEME.colors.text.primary);
     doc.setFontSize(PDF_THEME.fonts.title.size);
     doc.setFont(undefined, PDF_THEME.fonts.title.style);
-    doc.text(title, pageWidth / 2, margin, { align: 'center' });
+    doc.text(title, margin, margin + 4);
 
-    // Subtitle / Date
+    // Subtitle
     doc.setTextColor(...PDF_THEME.colors.text.secondary);
     doc.setFontSize(PDF_THEME.fonts.subtitle.size);
     doc.setFont(undefined, PDF_THEME.fonts.subtitle.style);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, pageWidth / 2, margin + 6, { align: 'center' });
-    doc.text(subtitle, pageWidth / 2, margin + 11, { align: 'center' });
+    doc.text(subtitle, margin, margin + 10);
 
-    // Version marker to verify deployment
-    doc.setFontSize(6);
-    doc.setTextColor(150, 150, 150);
-    doc.text('v2.0 (Statutory)', pageWidth - margin, doc.internal.pageSize.height - 5, { align: 'right' });
+    // Generated timestamp (right aligned)
+    doc.setFontSize(9);
+    doc.setTextColor(...PDF_THEME.colors.text.secondary);
+    doc.text(`Generated: ${formatReportDate()}`, pageWidth - margin, margin + 4, { align: 'right' });
 
-    // Separator Line
-    doc.setDrawColor(...PDF_THEME.colors.secondary);
-    doc.setLineWidth(0.1);
-    doc.line(margin, margin + 15, pageWidth - margin, margin + 15);
+    // Separator line
+    doc.setDrawColor(...PDF_THEME.colors.border);
+    doc.setLineWidth(0.2);
+    doc.line(margin, margin + 14, pageWidth - margin, margin + 14);
 
-    return margin + 25; // Return Y position to start content
+    return margin + 22;
+};
+
+export const addFooter = (doc, leftText = 'Prepared by Accounting Reports') => {
+    const pageCount = doc.internal.getNumberOfPages();
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const { margin, footerHeight } = PDF_THEME.layout;
+
+    for (let page = 1; page <= pageCount; page += 1) {
+        doc.setPage(page);
+        doc.setDrawColor(...PDF_THEME.colors.border);
+        doc.setLineWidth(0.2);
+        doc.line(margin, pageHeight - footerHeight, pageWidth - margin, pageHeight - footerHeight);
+
+        doc.setFontSize(PDF_THEME.fonts.footer.size);
+        doc.setTextColor(...PDF_THEME.colors.text.secondary);
+        doc.setFont(undefined, PDF_THEME.fonts.footer.style);
+        doc.text(leftText, margin, pageHeight - 6);
+        doc.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 6, { align: 'right' });
+    }
 };
 
 /**

@@ -4,6 +4,7 @@ import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES } from '../lib/constants';
 import { formatCurrency, TYPE_LABELS } from '../lib/format';
 import { generateTransactionPDF } from '../lib/pdf';
+import Dashboard from '../components/Dashboard';
 
 const formatDate = (dateVal) => {
     if (!dateVal) return '';
@@ -88,6 +89,8 @@ export default function Entries() {
 
     return (
         <div className="space-y-8">
+            <Dashboard />
+
             {/* Entry Form */}
             <div className={`rounded-lg p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
                 <div className="flex justify-between items-center mb-4">
