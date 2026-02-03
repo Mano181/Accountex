@@ -81,7 +81,7 @@ function AppContent() {
                   <p className="px-2 text-[11px] uppercase tracking-[0.2em] text-text-secondary">Navigation</p>
                   <nav className="mt-3 space-y-1.5">
                     <NavLink
-                      to="/dashboard"
+                      to="/"
                       end
                       className={({ isActive }) =>
                         `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
@@ -92,7 +92,7 @@ function AppContent() {
                       Dashboard
                     </NavLink>
                     <NavLink
-                      to="/"
+                      to="/entries"
                       end
                       className={({ isActive }) =>
                         `group flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
@@ -151,7 +151,7 @@ function AppContent() {
                   </div>
                   <nav className="mt-3 space-y-1.5">
                     <NavLink
-                      to="/dashboard"
+                      to="/"
                       end
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
@@ -163,7 +163,7 @@ function AppContent() {
                       Dashboard
                     </NavLink>
                     <NavLink
-                      to="/"
+                      to="/entries"
                       end
                       onClick={() => setMobileOpen(false)}
                       className={({ isActive }) =>
@@ -214,8 +214,8 @@ function AppContent() {
                   <Route path="/sign-up/*" element={<SignUpPage />} />
 
                   {/* Application Routes - Accessible by both Guests and Authenticated Users */}
-                  <Route path="/dashboard" element={<DashboardPage />} />
-                  <Route path="/" element={<Entries />} />
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/entries" element={<Entries />} />
                   <Route path="/profit-loss" element={<ProfitLossReport />} />
                   <Route path="/balance-sheet" element={<BalanceSheetReport />} />
                 </Routes>
