@@ -43,12 +43,12 @@ function AppContent() {
 
               <div className="flex items-center gap-3">
                 {/* Desktop Navigation Tabs */}
-                <nav className="hidden sm:flex bg-background rounded-lg p-1 border border-border">
+                <nav className="hidden sm:flex bg-background rounded-full p-1 border border-border shadow-sm">
                   <NavLink
                     to="/"
                     end
                     className={({ isActive }) =>
-                      `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                      `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                       }`
                     }
                   >
@@ -58,7 +58,7 @@ function AppContent() {
                   <NavLink
                     to="/profit-loss"
                     className={({ isActive }) =>
-                      `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                      `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                       }`
                     }
                   >
@@ -68,7 +68,7 @@ function AppContent() {
                   <NavLink
                     to="/balance-sheet"
                     className={({ isActive }) =>
-                      `flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                      `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                       }`
                     }
                   >
@@ -99,7 +99,7 @@ function AppContent() {
                   end
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                    `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                     }`
                   }
                 >
@@ -110,7 +110,7 @@ function AppContent() {
                   to="/profit-loss"
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                    `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                     }`
                   }
                 >
@@ -121,7 +121,7 @@ function AppContent() {
                   to="/balance-sheet"
                   onClick={() => setMobileOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                    `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
                     }`
                   }
                 >
