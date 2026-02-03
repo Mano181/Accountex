@@ -36,8 +36,8 @@ function AppContent() {
                   {mobileOpen ? <X size={18} /> : <Menu size={18} />}
                 </button>
                 <Link to="/" className="hover:opacity-80 transition-opacity">
-                  <h1 className="text-xl sm:text-2xl font-bold text-primary">Accounting Reports</h1>
-                  <p className="hidden sm:block text-sm text-text-secondary">Double Entry System</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-primary">Accounts Manager</h1>
+                  <p className="hidden sm:block text-xs uppercase tracking-[0.2em] text-text-secondary">Business Ledger</p>
                 </Link>
               </div>
 
