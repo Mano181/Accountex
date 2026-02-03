@@ -61,7 +61,7 @@ function AppContent() {
         <div className={isAuthPage ? '' : 'max-w-6xl mx-auto'}>
           <div className={isAuthPage ? '' : 'flex'}>
             {!isAuthPage && (
-              <aside className="hidden md:flex w-60 flex-col border-r border-border bg-surface px-4 py-6">
+              <aside className="hidden md:flex md:w-52 lg:w-60 xl:w-64 flex-col border-r border-border bg-surface px-4 py-6 md:sticky md:top-[64px] md:h-[calc(100vh-64px)] md:overflow-y-auto">
                 <div className="flex items-center gap-3 px-2 pb-5 border-b border-border">
                   <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                     AR
@@ -119,7 +119,7 @@ function AppContent() {
             {!isAuthPage && mobileOpen && (
               <div className="md:hidden fixed inset-0 z-30">
                 <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-                <aside className="absolute left-0 top-0 h-full w-72 bg-surface border-r border-border px-4 py-6 shadow-xl">
+                <aside className="absolute left-0 top-0 h-full w-72 bg-surface border-r border-border px-4 py-6 shadow-xl overflow-y-auto">
                   <div className="flex items-center gap-3 pb-5 border-b border-border">
                     <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
                       AR
@@ -177,7 +177,7 @@ function AppContent() {
               </div>
             )}
 
-            <div className={isAuthPage ? '' : 'flex-1 p-4 md:p-8'}>
+            <div className={isAuthPage ? '' : 'flex-1 min-w-0 p-4 md:p-6 lg:p-8'}>
               <Routes>
                 {/* Public/Auth Routes */}
                 <Route path="/sign-in/*" element={<SignInPage />} />

@@ -143,12 +143,12 @@ export default function Entries() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
             <Dashboard />
 
             {/* Entry Form */}
-            <div id="entry-form" className={`rounded-lg p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
-                <div className="flex justify-between items-center mb-4">
+            <div id="entry-form" className={`rounded-lg p-4 sm:p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <h2 className="text-lg font-semibold text-text-primary">
                         {editingId ? 'Edit Entry' : 'New Entry'}
                     </h2>
@@ -159,7 +159,7 @@ export default function Entries() {
                     )}
                 </div>
 
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                     <div>
                         <label className="block text-xs text-text-secondary mb-1 uppercase tracking-wide">Date</label>
                         <input
@@ -238,11 +238,11 @@ export default function Entries() {
                         />
                     </div>
 
-                    <div className="sm:col-span-2 lg:col-span-4 flex items-center gap-4">
+                    <div className="sm:col-span-2 xl:col-span-4 flex flex-col sm:flex-row sm:items-center gap-3">
                         <button
                             type="submit"
                             disabled={loading}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded font-medium text-sm transition-colors ${editingId ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'bg-primary hover:bg-blue-600'}`}
+                            className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded font-medium text-sm transition-colors w-full sm:w-auto ${editingId ? 'bg-yellow-600 hover:bg-yellow-700 text-white' : 'bg-primary hover:bg-blue-600'}`}
                         >
                             <Save size={16} />
                             {loading ? 'Saving...' : (editingId ? 'Update Entry' : 'Save Entry')}
@@ -270,11 +270,11 @@ export default function Entries() {
 
             {/* Transaction Table */}
             <div className="bg-surface rounded-lg border border-border overflow-hidden">
-                <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+                <div className="px-4 sm:px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <h2 className="text-lg font-semibold text-text-primary">Transaction History</h2>
                     <button
                         onClick={() => generateTransactionPDF(transactions)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-surface-highlight hover:bg-surface text-text-secondary hover:text-primary rounded border border-border transition-colors text-xs font-medium"
+                        className="flex items-center justify-center gap-2 px-3 py-2 bg-surface-highlight hover:bg-surface text-text-secondary hover:text-primary rounded border border-border transition-colors text-xs font-medium w-full sm:w-auto"
                         title="Download PDF"
                         disabled={transactions.length === 0}
                     >
@@ -283,26 +283,26 @@ export default function Entries() {
                     </button>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
+                    <table className="w-full text-sm min-w-[720px]">
                         <thead className="bg-surface-highlight text-text-secondary text-xs uppercase tracking-wide">
                             <tr>
-                                <th className="text-left p-4">Date</th>
-                                <th className="text-left p-4">Description</th>
-                                <th className="text-left p-4">Type</th>
-                                <th className="text-left p-4">Party</th>
-                                <th className="text-right p-4">Amount</th>
-                                <th className="text-center p-4">Action</th>
+                                <th className="text-left p-3 sm:p-4">Date</th>
+                                <th className="text-left p-3 sm:p-4">Description</th>
+                                <th className="text-left p-3 sm:p-4">Type</th>
+                                <th className="text-left p-3 sm:p-4">Party</th>
+                                <th className="text-right p-3 sm:p-4">Amount</th>
+                                <th className="text-center p-3 sm:p-4">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
                             {transactions.slice().reverse().map(tx => (
                                 <tr key={tx.id} className={`transition-colors ${editingId === tx.id ? 'bg-yellow-500/10' : 'hover:bg-surface-highlight/50'}`}>
-                                    <td className="p-4 text-text-secondary whitespace-nowrap">{formatDate(tx.date)}</td>
-                                    <td className="p-4 font-medium">{tx.description}</td>
-                                    <td className="p-4 text-text-secondary">{TYPE_LABELS[tx.type] || tx.type}</td>
-                                    <td className="p-4 text-text-secondary">{tx.party_name || tx.partyName || '-'}</td>
-                                    <td className="p-4 text-right font-mono font-medium">{formatCurrency(tx.amount)}</td>
-                                    <td className="p-4 text-center">
+                                    <td className="p-3 sm:p-4 text-text-secondary whitespace-nowrap">{formatDate(tx.date)}</td>
+                                    <td className="p-3 sm:p-4 font-medium">{tx.description}</td>
+                                    <td className="p-3 sm:p-4 text-text-secondary">{TYPE_LABELS[tx.type] || tx.type}</td>
+                                    <td className="p-3 sm:p-4 text-text-secondary">{tx.party_name || tx.partyName || '-'}</td>
+                                    <td className="p-3 sm:p-4 text-right font-mono font-medium">{formatCurrency(tx.amount)}</td>
+                                    <td className="p-3 sm:p-4 text-center">
                                         <div className="flex items-center justify-center gap-2">
                                             <button
                                                 onClick={() => handleEdit(tx)}

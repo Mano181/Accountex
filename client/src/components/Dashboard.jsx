@@ -141,7 +141,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 <StatCard
                     label="Total Inflow"
                     value={formatCurrency(metrics.inflow)}
@@ -172,7 +172,7 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 bg-surface rounded-lg border border-border p-4">
+                <div className="lg:col-span-2 bg-surface rounded-lg border border-border p-4 min-w-0">
                     <div className="flex items-center justify-between mb-3">
                         <h3 className="text-sm font-semibold">Recent Activity</h3>
                         <span className="text-xs text-text-secondary">Last 5 entries</span>
@@ -182,10 +182,10 @@ export default function Dashboard() {
                     ) : (
                         <div className="space-y-3">
                             {recentTransactions.map(tx => (
-                                <div key={tx.id} className="flex items-center justify-between text-sm">
-                                    <div>
-                                        <p className="font-medium">{tx.description}</p>
-                                        <p className="text-xs text-text-secondary">
+                                <div key={tx.id} className="flex items-center justify-between text-sm gap-3">
+                                    <div className="min-w-0">
+                                        <p className="font-medium truncate">{tx.description}</p>
+                                        <p className="text-xs text-text-secondary truncate">
                                             {formatDate(tx.date)} • {TYPE_LABELS[tx.type] || tx.type}
                                         </p>
                                     </div>
@@ -213,30 +213,30 @@ export default function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-surface rounded-lg border border-border p-4">
+                <div className="bg-surface rounded-lg border border-border p-4 min-w-0">
                     <h3 className="text-sm font-semibold mb-3">Customer Balances</h3>
                     {partyBalances.customerList.length === 0 ? (
                         <p className="text-sm text-text-secondary">No customer balances yet.</p>
                     ) : (
                         <div className="space-y-2">
                             {partyBalances.customerList.slice(0, 5).map(item => (
-                                <div key={item.name} className="flex items-center justify-between text-sm">
-                                    <span>{item.name}</span>
+                                <div key={item.name} className="flex items-center justify-between text-sm gap-3">
+                                    <span className="truncate">{item.name}</span>
                                     <span className="font-mono">{formatCurrency(item.balance)}</span>
                                 </div>
                             ))}
                         </div>
                     )}
                 </div>
-                <div className="bg-surface rounded-lg border border-border p-4">
+                <div className="bg-surface rounded-lg border border-border p-4 min-w-0">
                     <h3 className="text-sm font-semibold mb-3">Vendor Balances</h3>
                     {partyBalances.vendorList.length === 0 ? (
                         <p className="text-sm text-text-secondary">No vendor balances yet.</p>
                     ) : (
                         <div className="space-y-2">
                             {partyBalances.vendorList.slice(0, 5).map(item => (
-                                <div key={item.name} className="flex items-center justify-between text-sm">
-                                    <span>{item.name}</span>
+                                <div key={item.name} className="flex items-center justify-between text-sm gap-3">
+                                    <span className="truncate">{item.name}</span>
                                     <span className="font-mono">{formatCurrency(item.balance)}</span>
                                 </div>
                             ))}
