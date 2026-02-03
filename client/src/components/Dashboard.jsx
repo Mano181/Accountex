@@ -65,6 +65,9 @@ export default function Dashboard() {
             .map(tx => new Date(tx.date || tx.timestamp))
             .filter(date => !Number.isNaN(date.getTime()));
 
+        const inventoryItem = bs.assets.find(item => item.name === 'Inventory');
+        const inventoryValue = inventoryItem ? inventoryItem.amount : 0;
+
         return {
             inflow,
             outflow,
@@ -74,6 +77,7 @@ export default function Dashboard() {
             totalAssets: bs.totalAssets,
             totalLiabilities: bs.totalLiabilities,
             totalEquity: bs.totalEquity,
+            inventoryValue,
             period: formatPeriod(dates)
         };
     }, [transactions]);
@@ -195,22 +199,14 @@ export default function Dashboard() {
                 <div className="bg-surface rounded-lg border border-border p-4 space-y-3">
                     <div className="flex items-center gap-2 text-sm font-semibold">
                         <Scale size={16} />
-                        Balance Snapshot
+                        Inventory Available
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-secondary">Total Assets</span>
-                        <span className="font-mono">{formatCurrency(metrics.totalAssets)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-secondary">Total Liabilities</span>
-                        <span className="font-mono">{formatCurrency(metrics.totalLiabilities)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-secondary">Total Equity</span>
-                        <span className="font-mono">{formatCurrency(metrics.totalEquity)}</span>
+                        <span className="text-text-secondary">Inventory Value</span>
+                        <span className="font-mono">{formatCurrency(metrics.inventoryValue)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-text-secondary pt-2 border-t border-border">
-                        <span>Derived from entries</span>
+                        <span>From Inventory account</span>
                         <Layers size={14} />
                     </div>
                 </div>
