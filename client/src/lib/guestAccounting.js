@@ -43,12 +43,22 @@ export const getGuestProfitLoss = (transactions) => {
     const totalRevenue = revenue.reduce((sum, item) => sum + item.amount, 0);
     const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
 
+    const purchasesTotal = transactions
+        .filter(tx => tx.type === 'PURCHASE_INVOICE')
+        .reduce((sum, tx) => sum + (parseFloat(tx.amount) || 0), 0);
+    const closingInventory = balances['Inventory'] || 0;
+    const openingInventory = 0;
+    const cogs = openingInventory + purchasesTotal - closingInventory;
+
     return {
         revenue,
-        expenses,
+        expenses: [
+            { name: 'Cost of Goods Sold', amount: cogs },
+            ...expenses
+        ],
         totalRevenue,
-        totalExpenses,
-        netIncome: totalRevenue - totalExpenses
+        totalExpenses: totalExpenses + cogs,
+        netIncome: totalRevenue - (totalExpenses + cogs)
     };
 };
 

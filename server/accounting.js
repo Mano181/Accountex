@@ -8,7 +8,8 @@ const TRANSACTION_TYPES = {
     PURCHASE_INVOICE: 'PURCHASE_INVOICE',
     VENDOR_PAYMENT: 'VENDOR_PAYMENT',
     EXPENSE: 'EXPENSE',
-    COGS_ADJUSTMENT: 'COGS_ADJUSTMENT',
+    INVENTORY_ADD: 'INVENTORY_ADD',
+    INVENTORY_REDUCE: 'INVENTORY_REDUCE',
     CAPITAL_INTRODUCED: 'CAPITAL_INTRODUCED',
     DRAWINGS: 'DRAWINGS',
     LOAN_TAKEN: 'LOAN_TAKEN',
@@ -62,9 +63,14 @@ const generateEntriesFromType = (type, amount, meta = {}) => {
                 { account: meta.expenseAccount || 'Operating Expenses', type: 'debit', amount: amt },
                 { account: 'Cash', type: 'credit', amount: amt }
             ];
-        case TRANSACTION_TYPES.COGS_ADJUSTMENT:
+        case TRANSACTION_TYPES.INVENTORY_ADD:
             return [
-                { account: 'Cost of Goods Sold', type: 'debit', amount: amt },
+                { account: 'Inventory', type: 'debit', amount: amt },
+                { account: 'Inventory Adjustment', type: 'credit', amount: amt }
+            ];
+        case TRANSACTION_TYPES.INVENTORY_REDUCE:
+            return [
+                { account: 'Inventory Adjustment', type: 'debit', amount: amt },
                 { account: 'Inventory', type: 'credit', amount: amt }
             ];
         case TRANSACTION_TYPES.CAPITAL_INTRODUCED:

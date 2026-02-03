@@ -54,12 +54,24 @@ const getProfitLoss = async (userId) => {
     const totalRevenue = revenue.reduce((sum, item) => sum + item.amount, 0);
     const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
 
+    const purchasesResult = await db.query(
+        "SELECT COALESCE(SUM(amount), 0) AS total FROM transactions WHERE user_id = $1 AND type = 'PURCHASE_INVOICE'",
+        [userId]
+    );
+    const purchasesTotal = parseFloat(purchasesResult.rows[0]?.total || 0);
+    const closingInventory = balances['Inventory'] || 0;
+    const openingInventory = 0;
+    const cogs = openingInventory + purchasesTotal - closingInventory;
+
     return {
         revenue,
-        expenses,
+        expenses: [
+            { name: 'Cost of Goods Sold', amount: cogs },
+            ...expenses
+        ],
         totalRevenue,
-        totalExpenses,
-        netIncome: totalRevenue - totalExpenses
+        totalExpenses: totalExpenses + cogs,
+        netIncome: totalRevenue - (totalExpenses + cogs)
     };
 };
 

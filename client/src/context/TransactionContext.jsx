@@ -56,7 +56,9 @@ export const TransactionProvider = ({ children }) => {
             const newTx = {
                 ...transaction,
                 id: crypto.randomUUID(),
-                entries: generateEntriesFromType(transaction.type, transaction.amount, { expenseAccount: transaction.expenseAccount }),
+                entries: generateEntriesFromType(transaction.type, transaction.amount, {
+                    expenseAccount: transaction.expenseAccount
+                }),
                 timestamp: new Date().toISOString()
             };
             const updated = [...transactions, newTx];
@@ -90,7 +92,9 @@ export const TransactionProvider = ({ children }) => {
                     return {
                         ...tx,
                         ...transaction,
-                        entries: generateEntriesFromType(transaction.type, transaction.amount, { expenseAccount: transaction.expenseAccount })
+                        entries: generateEntriesFromType(transaction.type, transaction.amount, {
+                            expenseAccount: transaction.expenseAccount
+                        })
                     };
                 }
                 return tx;

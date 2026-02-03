@@ -111,7 +111,9 @@ app.post('/api/transactions', requireAuth(), async (req, res) => {
         // Validate Loan Logic
         await validateLoanPayment(userId, type, amount);
 
-        const entries = generateEntriesFromType(type, amount, { expenseAccount });
+        const entries = generateEntriesFromType(type, amount, {
+            expenseAccount
+        });
 
         // Accounting validation
         if (!validateTransaction(entries)) {
@@ -162,7 +164,9 @@ app.put('/api/transactions/:id', requireAuth(), async (req, res) => {
         // Validate Loan Logic
         await validateLoanPayment(userId, type, amount, id);
 
-        const entries = generateEntriesFromType(type, amount, { expenseAccount });
+        const entries = generateEntriesFromType(type, amount, {
+            expenseAccount
+        });
 
         if (!validateTransaction(entries)) {
             return res.status(500).json({ error: 'Internal Error: Generated entries do not balance' });

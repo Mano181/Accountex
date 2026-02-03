@@ -4,7 +4,7 @@ import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES, TYPE_LABELS, EXPENSE_ACCOUNTS } from '../lib/constants';
 
 export default function TransactionForm() {
-    const { addTransaction } = useTransactions();
+    const { addTransaction, transactions } = useTransactions();
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [description, setDescription] = useState('');
     const [type, setType] = useState('');
@@ -109,6 +109,13 @@ export default function TransactionForm() {
                                 placeholder="e.g. Store A"
                                 value={partyName}
                                 onChange={(e) => setPartyName(e.target.value)}
+                                list={
+                                    type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT
+                                        ? 'customer-list'
+                                        : type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT
+                                            ? 'vendor-list'
+                                            : 'lender-list'
+                                }
                             />
                         </div>
                     )}
@@ -162,6 +169,22 @@ export default function TransactionForm() {
             >
                 {loading ? 'Saving...' : <><Save size={18} className="mr-2" /> Save</>}
             </button>
+
+            <datalist id="customer-list">
+                {[...new Set(transactions.filter(tx => tx.party_type === 'CUSTOMER' || tx.partyType === 'CUSTOMER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+            <datalist id="vendor-list">
+                {[...new Set(transactions.filter(tx => tx.party_type === 'VENDOR' || tx.partyType === 'VENDOR').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+            <datalist id="lender-list">
+                {[...new Set(transactions.filter(tx => tx.party_type === 'LENDER' || tx.partyType === 'LENDER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
         </div>
     );
 }

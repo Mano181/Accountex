@@ -189,6 +189,13 @@ export default function Entries() {
                                 placeholder="e.g. Store A"
                                 value={partyName}
                                 onChange={(e) => setPartyName(e.target.value)}
+                                list={
+                                    type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT
+                                        ? 'customer-list'
+                                        : type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT
+                                            ? 'vendor-list'
+                                            : 'lender-list'
+                                }
                             />
                         </div>
                     )}
@@ -210,7 +217,7 @@ export default function Entries() {
                     <div>
                         <label className="block text-xs text-text-secondary mb-1 uppercase tracking-wide">Type</label>
                         <select
-                            className="w-full p-2.5 rounded bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
+                            className="w-full p-2.5 h-[42px] rounded bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
                             value={type}
                             onChange={(e) => setType(e.target.value)}
                         >
@@ -244,6 +251,22 @@ export default function Entries() {
                     </div>
                 </form>
             </div>
+
+            <datalist id="customer-list">
+                {[...new Set(transactions.filter(tx => tx.party_type === 'CUSTOMER' || tx.partyType === 'CUSTOMER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+            <datalist id="vendor-list">
+                {[...new Set(transactions.filter(tx => tx.party_type === 'VENDOR' || tx.partyType === 'VENDOR').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
+            <datalist id="lender-list">
+                {[...new Set(transactions.filter(tx => tx.party_type === 'LENDER' || tx.partyType === 'LENDER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                    <option key={name} value={name} />
+                ))}
+            </datalist>
 
             {/* Transaction Table */}
             <div className="bg-surface rounded-lg border border-border overflow-hidden">

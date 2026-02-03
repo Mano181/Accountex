@@ -56,6 +56,12 @@ const CATEGORIES = {
         contra: true,
         label: 'Owner Drawings'
     },
+    'Inventory Adjustment': {
+        report: 'BS',
+        type: 'EQUITY',
+        normalBalance: 'CREDIT',
+        label: 'Inventory Adjustment'
+    },
     'Retained Earnings': {
         report: 'BS',
         type: 'EQUITY',
@@ -70,12 +76,6 @@ const CATEGORIES = {
         label: 'Sales Revenue'
     },
     // EXPENSES
-    'Cost of Goods Sold': {
-        report: 'PL',
-        type: 'EXPENSE',
-        normalBalance: 'DEBIT',
-        label: 'Cost of Goods Sold'
-    },
     'Transport Expense': {
         report: 'PL',
         type: 'EXPENSE',
