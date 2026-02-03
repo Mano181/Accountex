@@ -24,7 +24,7 @@ function AppContent() {
       {/* Header - Hidden on Auth Pages */}
       {!isAuthPage && (
         <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur">
-          <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="w-full px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <button
@@ -46,8 +46,13 @@ function AppContent() {
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
                 <SignedOut>
-                  <Link to="/sign-in" className="p-2 text-text-secondary hover:text-primary transition-colors" title="Sign In">
-                    <LogIn size={20} />
+                  <Link
+                    to="/sign-in"
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border text-sm font-medium text-text-secondary hover:text-primary hover:border-primary/40 hover:bg-surface-highlight transition-colors"
+                    title="Sign In"
+                  >
+                    <LogIn size={16} />
+                    Sign In
                   </Link>
                 </SignedOut>
               </div>
