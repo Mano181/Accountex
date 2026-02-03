@@ -24,12 +24,12 @@ function AppContent() {
       {/* Header - Hidden on Auth Pages */}
       {!isAuthPage && (
         <header className="bg-surface border-b border-border sticky top-0 z-20">
-          <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="max-w-6xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <button
                   type="button"
-                  className="sm:hidden p-2 rounded-md border border-border text-text-secondary hover:text-primary hover:bg-surface-highlight transition-colors"
+                  className="md:hidden p-2 rounded-md border border-border text-text-secondary hover:text-primary hover:bg-surface-highlight transition-colors"
                   onClick={() => setMobileOpen(prev => !prev)}
                   aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
                 >
@@ -42,42 +42,6 @@ function AppContent() {
               </div>
 
               <div className="flex items-center gap-3">
-                {/* Desktop Navigation Tabs */}
-                <nav className="hidden sm:flex bg-background rounded-full p-1 border border-border shadow-sm">
-                  <NavLink
-                    to="/"
-                    end
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                      }`
-                    }
-                  >
-                    <FileText size={16} />
-                    <span>Entries</span>
-                  </NavLink>
-                  <NavLink
-                    to="/profit-loss"
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                      }`
-                    }
-                  >
-                    <BarChart3 size={16} />
-                    <span>P&L</span>
-                  </NavLink>
-                  <NavLink
-                    to="/balance-sheet"
-                    className={({ isActive }) =>
-                      `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                      }`
-                    }
-                  >
-                    <Scale size={16} />
-                    <span>Balance Sheet</span>
-                  </NavLink>
-                </nav>
-
-                {/* User Action */}
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
@@ -89,64 +53,109 @@ function AppContent() {
               </div>
             </div>
           </div>
-
-          {/* Mobile Nav Drawer */}
-          {mobileOpen && (
-            <div className="sm:hidden border-t border-border bg-surface">
-              <nav className="px-4 py-3 space-y-2">
-                <NavLink
-                  to="/"
-                  end
-                  onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                    }`
-                  }
-                >
-                  <FileText size={16} />
-                  Entries
-                </NavLink>
-                <NavLink
-                  to="/profit-loss"
-                  onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                    }`
-                  }
-                >
-                  <BarChart3 size={16} />
-                  P&L
-                </NavLink>
-                <NavLink
-                  to="/balance-sheet"
-                  onClick={() => setMobileOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
-                    }`
-                  }
-                >
-                  <Scale size={16} />
-                  Balance Sheet
-                </NavLink>
-              </nav>
-            </div>
-          )}
         </header>
       )}
 
       {/* Main Content */}
-      <main className={`flex-grow ${isAuthPage ? '' : 'p-4 md:p-8'}`}>
-        <div className={isAuthPage ? '' : 'max-w-5xl mx-auto'}>
-          <Routes>
-            {/* Public/Auth Routes */}
-            <Route path="/sign-in/*" element={<SignInPage />} />
-            <Route path="/sign-up/*" element={<SignUpPage />} />
+      <main className={`flex-grow ${isAuthPage ? '' : ''}`}>
+        <div className={isAuthPage ? '' : 'max-w-6xl mx-auto'}>
+          <div className={isAuthPage ? '' : 'flex'}>
+            {!isAuthPage && (
+              <aside className="hidden md:flex w-56 flex-col border-r border-border bg-surface px-3 py-6">
+                <nav className="space-y-2">
+                  <NavLink
+                    to="/"
+                    end
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                      }`
+                    }
+                  >
+                    <FileText size={16} />
+                    Entries
+                  </NavLink>
+                  <NavLink
+                    to="/profit-loss"
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                      }`
+                    }
+                  >
+                    <BarChart3 size={16} />
+                    P&L
+                  </NavLink>
+                  <NavLink
+                    to="/balance-sheet"
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                      }`
+                    }
+                  >
+                    <Scale size={16} />
+                    Balance Sheet
+                  </NavLink>
+                </nav>
+              </aside>
+            )}
 
-            {/* Application Routes - Accessible by both Guests and Authenticated Users */}
-            <Route path="/" element={<Entries />} />
-            <Route path="/profit-loss" element={<ProfitLossReport />} />
-            <Route path="/balance-sheet" element={<BalanceSheetReport />} />
-          </Routes>
+            {/* Mobile Sidebar Drawer */}
+            {!isAuthPage && mobileOpen && (
+              <div className="md:hidden fixed inset-0 z-30">
+                <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
+                <aside className="absolute left-0 top-0 h-full w-64 bg-surface border-r border-border px-4 py-6 shadow-lg">
+                  <nav className="space-y-2">
+                    <NavLink
+                      to="/"
+                      end
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <FileText size={16} />
+                      Entries
+                    </NavLink>
+                    <NavLink
+                      to="/profit-loss"
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <BarChart3 size={16} />
+                      P&L
+                    </NavLink>
+                    <NavLink
+                      to="/balance-sheet"
+                      onClick={() => setMobileOpen(false)}
+                      className={({ isActive }) =>
+                        `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${isActive ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                        }`
+                      }
+                    >
+                      <Scale size={16} />
+                      Balance Sheet
+                    </NavLink>
+                  </nav>
+                </aside>
+              </div>
+            )}
+
+            <div className={isAuthPage ? '' : 'flex-1 p-4 md:p-8'}>
+              <Routes>
+                {/* Public/Auth Routes */}
+                <Route path="/sign-in/*" element={<SignInPage />} />
+                <Route path="/sign-up/*" element={<SignUpPage />} />
+
+                {/* Application Routes - Accessible by both Guests and Authenticated Users */}
+                <Route path="/" element={<Entries />} />
+                <Route path="/profit-loss" element={<ProfitLossReport />} />
+                <Route path="/balance-sheet" element={<BalanceSheetReport />} />
+              </Routes>
+            </div>
+          </div>
         </div>
       </main>
 
