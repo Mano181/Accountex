@@ -282,7 +282,52 @@ export default function Entries() {
                         Download PDF
                     </button>
                 </div>
-                <div className="overflow-x-auto">
+
+                {/* Compact Mobile List */}
+                <div className="sm:hidden divide-y divide-border">
+                    {transactions.slice().reverse().map(tx => (
+                        <div key={tx.id} className="p-4 space-y-2">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="font-medium truncate">{tx.description}</p>
+                                    <p className="text-xs text-text-secondary">
+                                        {formatDate(tx.date)} • {TYPE_LABELS[tx.type] || tx.type}
+                                    </p>
+                                </div>
+                                <p className="font-mono text-sm">{formatCurrency(tx.amount)}</p>
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-text-secondary">
+                                <span className="truncate">{tx.party_name || tx.partyName || 'No party'}</span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => handleEdit(tx)}
+                                        className="p-1.5 rounded hover:bg-surface-highlight text-text-secondary hover:text-primary transition-colors"
+                                        title="Edit Entry"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm('Are you sure you want to delete this entry?')) {
+                                                await deleteTransaction(tx.id);
+                                            }
+                                        }}
+                                        className="p-1.5 rounded hover:bg-surface-highlight text-text-secondary hover:text-danger transition-colors"
+                                        title="Delete Entry"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                    {transactions.length === 0 && (
+                        <div className="p-8 text-center text-text-secondary text-sm">No entries found.</div>
+                    )}
+                </div>
+
+                {/* Standard Table (Tablet and Up) */}
+                <div className="hidden sm:block overflow-x-auto">
                     <table className="w-full text-sm min-w-[720px]">
                         <thead className="bg-surface-highlight text-text-secondary text-xs uppercase tracking-wide">
                             <tr>
