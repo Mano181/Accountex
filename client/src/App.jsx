@@ -58,7 +58,7 @@ function AppContent() {
 
       {/* Main Content */}
       <main className={`flex-grow ${isAuthPage ? '' : ''}`}>
-        <div className={isAuthPage ? '' : 'max-w-6xl mx-auto'}>
+        <div className={isAuthPage ? '' : 'w-full'}>
           <div className={isAuthPage ? '' : 'flex'}>
             {!isAuthPage && (
               <aside className="hidden md:flex md:w-52 lg:w-60 xl:w-64 flex-col border-r border-border bg-surface px-4 py-6 md:sticky md:top-[64px] md:h-[calc(100vh-64px)] md:overflow-y-auto">
