@@ -27,7 +27,7 @@ function AppContent() {
         <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur">
           <div className="w-full px-0 py-3">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 px-4">
+              <div className="flex items-center gap-3 pl-4">
                 <button
                   type="button"
                   className="md:hidden p-2 rounded-md border border-border text-text-secondary hover:text-primary hover:bg-surface-highlight transition-colors"
@@ -41,7 +41,7 @@ function AppContent() {
                 </Link>
               </div>
 
-              <div className="flex items-center gap-3 px-4">
+              <div className="flex items-center gap-3 pr-4">
                 <SignedIn>
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>

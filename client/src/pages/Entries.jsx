@@ -379,24 +379,6 @@ export default function Entries() {
                 </div>
             </div>
 
-            {/* Mobile Quick Action */}
-            <button
-                type="button"
-                className="sm:hidden fixed bottom-6 right-6 z-30 flex items-center gap-2 px-4 py-3 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:bg-primary-hover transition-colors"
-                onClick={() => {
-                    const form = document.getElementById('entry-form');
-                    const dateInput = document.getElementById('entry-date');
-                    if (form) {
-                        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                    if (dateInput) {
-                        dateInput.focus({ preventScroll: true });
-                    }
-                }}
-            >
-                <Plus size={16} />
-                New Entry
-            </button>
         </div>
     );
 }
