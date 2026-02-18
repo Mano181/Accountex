@@ -6,6 +6,30 @@ const { clerkMiddleware, requireAuth } = require('@clerk/express');
 const { getTransactions, addTransaction, updateTransaction, deleteTransaction } = require('./store');
 const { validateTransaction, generateEntriesFromType, TRANSACTION_TYPES } = require('./accounting');
 const { getProfitLoss, getBalanceSheet } = require('./reports');
+const {
+    listCustomers,
+    createCustomer,
+    updateCustomer,
+    deleteCustomer,
+    listInventoryItems,
+    createInventoryItem,
+    updateInventoryItem,
+    adjustInventoryItemQuantity,
+    deleteInventoryItem,
+    listInvoices,
+    createInvoice,
+    listPayments,
+    createPayment,
+    listOutstanding
+} = require('./salesStore');
+const {
+    listVendors,
+    createVendor,
+    updateVendor,
+    listBills,
+    createBill,
+    updateBillPayment
+} = require('./purchaseStore');
 
 const app = express();
 const PORT = 5001;
@@ -45,6 +69,253 @@ app.get('/api/reports/balance-sheet', requireAuth(), async (req, res) => {
         res.json(data);
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+// Sales Module - Customers
+app.get('/api/sales/customers', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { search = '' } = req.query;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listCustomers(userId, String(search || ''));
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/sales/customers', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    try {
+        const data = await createCustomer(userId, req.body || {});
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.put('/api/sales/customers/:id', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const data = await updateCustomer(userId, id, req.body || {});
+        res.json(data);
+    } catch (error) {
+        const statusCode = error.message === 'Customer not found' ? 404 : 400;
+        res.status(statusCode).json({ error: error.message });
+    }
+});
+
+app.delete('/api/sales/customers/:id', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const deleted = await deleteCustomer(userId, id);
+        if (!deleted) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+        res.status(204).send();
+    } catch (error) {
+        if (error.message.includes('financial records')) {
+            return res.status(409).json({ error: error.message });
+        }
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Sales Module - Inventory Items
+app.get('/api/sales/inventory-items', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { search = '' } = req.query;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listInventoryItems(userId, String(search || ''));
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/sales/inventory-items', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    try {
+        const data = await createInventoryItem(userId, req.body || {});
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.put('/api/sales/inventory-items/:id', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const data = await updateInventoryItem(userId, id, req.body || {});
+        res.json(data);
+    } catch (error) {
+        const statusCode = error.message === 'Inventory item not found' ? 404 : 400;
+        res.status(statusCode).json({ error: error.message });
+    }
+});
+
+app.put('/api/sales/inventory-items/:id/adjust', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const data = await adjustInventoryItemQuantity(userId, id, req.body || {});
+        res.json(data);
+    } catch (error) {
+        const statusCode = error.message === 'Inventory item not found' ? 404 : 400;
+        res.status(statusCode).json({ error: error.message });
+    }
+});
+
+app.delete('/api/sales/inventory-items/:id', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const deleted = await deleteInventoryItem(userId, id);
+        if (!deleted) {
+            return res.status(404).json({ error: 'Inventory item not found' });
+        }
+        res.status(204).send();
+    } catch (error) {
+        if (error.message.includes('invoice dependency')) {
+            return res.status(409).json({ error: error.message });
+        }
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Sales Module - Invoices
+app.get('/api/sales/invoices', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { customerId = '' } = req.query;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listInvoices(userId, String(customerId || ''));
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/sales/invoices', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    try {
+        const data = await createInvoice(userId, req.body || {});
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Sales Module - Outstanding
+app.get('/api/sales/outstanding', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { customerId = '' } = req.query;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listOutstanding(userId, String(customerId || ''));
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Sales Module - Payments Received
+app.get('/api/sales/payments', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { customerId = '' } = req.query;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listPayments(userId, String(customerId || ''));
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/sales/payments', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    try {
+        const data = await createPayment(userId, {
+            ...req.body,
+            allowOverpayment: Boolean(req.body?.allowOverpayment)
+        });
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Purchase Module - Vendors
+app.get('/api/purchase/vendors', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listVendors(userId);
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/purchase/vendors', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    try {
+        const data = await createVendor(userId, req.body || {});
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.put('/api/purchase/vendors/:id', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const data = await updateVendor(userId, id, req.body || {});
+        res.json(data);
+    } catch (error) {
+        const statusCode = error.message === 'Vendor not found' ? 404 : 400;
+        res.status(statusCode).json({ error: error.message });
+    }
+});
+
+// Purchase Module - Bills
+app.get('/api/purchase/bills', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { status = '' } = req.query;
+    res.set('Cache-Control', 'no-store');
+    try {
+        const data = await listBills(userId, String(status || ''));
+        res.json(data);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/purchase/bills', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    try {
+        const data = await createBill(userId, req.body || {});
+        res.status(201).json(data);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.put('/api/purchase/bills/:id/payment', requireAuth(), async (req, res) => {
+    const { userId } = req.auth;
+    const { id } = req.params;
+    try {
+        const data = await updateBillPayment(userId, id, req.body || {});
+        res.json(data);
+    } catch (error) {
+        const statusCode = error.message === 'Bill not found' ? 404 : 400;
+        res.status(statusCode).json({ error: error.message });
     }
 });
 

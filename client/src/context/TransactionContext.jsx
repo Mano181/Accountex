@@ -134,7 +134,7 @@ export const TransactionProvider = ({ children }) => {
     }, [isSignedIn, isLoaded]);
 
     return (
-        <TransactionContext.Provider value={{ transactions, loading, addTransaction, updateTransaction, deleteTransaction }}>
+        <TransactionContext.Provider value={{ transactions, loading, addTransaction, updateTransaction, deleteTransaction, refreshTransactions: fetchTransactions }}>
             {children}
         </TransactionContext.Provider>
     );

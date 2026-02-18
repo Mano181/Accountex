@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Edit2, Trash2, Download, Plus } from 'lucide-react';
+import { Save, Edit2, Trash2, Download } from 'lucide-react';
 import { useTransactions } from '../context/TransactionContext';
 import { TRANSACTION_TYPES, EXPENSE_ACCOUNTS } from '../lib/constants';
 import { formatCurrency, TYPE_LABELS } from '../lib/format';
@@ -13,7 +13,31 @@ const formatDate = (dateVal) => {
     return new Date(dateVal).toISOString().split('T')[0];
 };
 
-export default function Entries() {
+const SALES_TYPES = new Set([
+    TRANSACTION_TYPES.SALES_INVOICE,
+    TRANSACTION_TYPES.CUSTOMER_PAYMENT
+]);
+
+const PURCHASE_TYPES = new Set([
+    TRANSACTION_TYPES.PURCHASE_INVOICE,
+    TRANSACTION_TYPES.VENDOR_PAYMENT,
+    TRANSACTION_TYPES.EXPENSE
+]);
+
+const getPartyType = (type) => {
+    if (SALES_TYPES.has(type)) return 'CUSTOMER';
+    if (PURCHASE_TYPES.has(type) || type === TRANSACTION_TYPES.PURCHASE_INVOICE) return 'VENDOR';
+    if (type === TRANSACTION_TYPES.LOAN_TAKEN || type === TRANSACTION_TYPES.LOAN_PAID) return 'LENDER';
+    return null;
+};
+
+export default function Entries({
+    allowedTypes = null,
+    showForm = true,
+    showActions = showForm,
+    moduleTitle = 'Entries',
+    tableTitle = 'Transaction History'
+}) {
     const { transactions, addTransaction, updateTransaction, deleteTransaction } = useTransactions();
     // Use local date instead of UTC to avoid incorrect date in early morning
     const [date, setDate] = useState(() => {
@@ -29,6 +53,15 @@ export default function Entries() {
     const [editingId, setEditingId] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const allowedTypeSet = allowedTypes ? new Set(allowedTypes) : null;
+
+    const visibleTypes = Object.values(TRANSACTION_TYPES).filter(
+        (txType) => !allowedTypeSet || allowedTypeSet.has(txType)
+    );
+
+    const visibleTransactions = transactions.filter(
+        (tx) => !allowedTypeSet || allowedTypeSet.has(tx.type)
+    );
 
     const handleEdit = (tx) => {
         setEditingId(tx.id);
@@ -111,10 +144,7 @@ export default function Entries() {
         setLoading(true);
         try {
             const partyType = (() => {
-                if (type === TRANSACTION_TYPES.SALES_INVOICE || type === TRANSACTION_TYPES.CUSTOMER_PAYMENT) return 'CUSTOMER';
-                if (type === TRANSACTION_TYPES.PURCHASE_INVOICE || type === TRANSACTION_TYPES.VENDOR_PAYMENT) return 'VENDOR';
-                if (type === TRANSACTION_TYPES.LOAN_TAKEN || type === TRANSACTION_TYPES.LOAN_PAID) return 'LENDER';
-                return null;
+                return getPartyType(type);
             })();
 
             const transactionData = {
@@ -143,9 +173,13 @@ export default function Entries() {
 
     return (
         <div className="space-y-6 sm:space-y-8">
+            <section className="bg-surface rounded-lg border border-border px-4 py-3 sm:px-6">
+                <h1 className="text-lg sm:text-xl font-semibold text-text-primary">{moduleTitle}</h1>
+            </section>
 
             {/* Entry Form */}
-            <div id="entry-form" className={`rounded-lg p-4 sm:p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
+            {showForm && (
+                <div id="entry-form" className={`rounded-lg p-4 sm:p-6 border ${editingId ? 'bg-blue-900/10 border-blue-500/50' : 'bg-surface border-border'}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
                     <h2 className="text-lg font-semibold text-text-primary">
                         {editingId ? 'Edit Entry' : 'New Entry'}
@@ -220,8 +254,8 @@ export default function Entries() {
                             onChange={(e) => setType(e.target.value)}
                         >
                             <option value="">Select Type</option>
-                            {Object.entries(TRANSACTION_TYPES).map(([key, val]) => (
-                                <option key={key} value={val}>{TYPE_LABELS[val]}</option>
+                            {visibleTypes.map((txType) => (
+                                <option key={txType} value={txType}>{TYPE_LABELS[txType]}</option>
                             ))}
                         </select>
                     </div>
@@ -249,19 +283,20 @@ export default function Entries() {
                     </div>
                 </form>
             </div>
+            )}
 
             <datalist id="customer-list">
-                {[...new Set(transactions.filter(tx => tx.party_type === 'CUSTOMER' || tx.partyType === 'CUSTOMER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                {[...new Set(visibleTransactions.filter(tx => tx.party_type === 'CUSTOMER' || tx.partyType === 'CUSTOMER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
                     <option key={name} value={name} />
                 ))}
             </datalist>
             <datalist id="vendor-list">
-                {[...new Set(transactions.filter(tx => tx.party_type === 'VENDOR' || tx.partyType === 'VENDOR').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                {[...new Set(visibleTransactions.filter(tx => tx.party_type === 'VENDOR' || tx.partyType === 'VENDOR').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
                     <option key={name} value={name} />
                 ))}
             </datalist>
             <datalist id="lender-list">
-                {[...new Set(transactions.filter(tx => tx.party_type === 'LENDER' || tx.partyType === 'LENDER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
+                {[...new Set(visibleTransactions.filter(tx => tx.party_type === 'LENDER' || tx.partyType === 'LENDER').map(tx => tx.party_name || tx.partyName).filter(Boolean))].map(name => (
                     <option key={name} value={name} />
                 ))}
             </datalist>
@@ -269,12 +304,12 @@ export default function Entries() {
             {/* Transaction Table */}
             <div className="bg-surface rounded-lg border border-border overflow-hidden">
                 <div className="px-4 sm:px-6 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                    <h2 className="text-lg font-semibold text-text-primary">Transaction History</h2>
+                    <h2 className="text-lg font-semibold text-text-primary">{tableTitle}</h2>
                     <button
-                        onClick={() => generateTransactionPDF(transactions)}
+                        onClick={() => generateTransactionPDF(visibleTransactions)}
                         className="flex items-center justify-center gap-2 px-3 py-2 bg-surface-highlight hover:bg-surface text-text-secondary hover:text-primary rounded border border-border transition-colors text-xs font-medium w-full sm:w-auto"
                         title="Download PDF"
-                        disabled={transactions.length === 0}
+                        disabled={visibleTransactions.length === 0}
                     >
                         <Download size={14} />
                         Download PDF
@@ -283,7 +318,7 @@ export default function Entries() {
 
                 {/* Compact Mobile List */}
                 <div className="sm:hidden divide-y divide-border">
-                    {transactions.slice().reverse().map(tx => (
+                    {visibleTransactions.slice().reverse().map(tx => (
                         <div key={tx.id} className="p-4 space-y-2">
                             <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
@@ -296,30 +331,32 @@ export default function Entries() {
                             </div>
                             <div className="flex items-center justify-between text-xs text-text-secondary">
                                 <span className="truncate">{tx.party_name || tx.partyName || 'No party'}</span>
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => handleEdit(tx)}
-                                        className="p-1.5 rounded hover:bg-surface-highlight text-text-secondary hover:text-primary transition-colors"
-                                        title="Edit Entry"
-                                    >
-                                        <Edit2 size={16} />
-                                    </button>
-                                    <button
-                                        onClick={async () => {
-                                            if (window.confirm('Are you sure you want to delete this entry?')) {
-                                                await deleteTransaction(tx.id);
-                                            }
-                                        }}
-                                        className="p-1.5 rounded hover:bg-surface-highlight text-text-secondary hover:text-danger transition-colors"
-                                        title="Delete Entry"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
+                                {showActions && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => handleEdit(tx)}
+                                            className="p-1.5 rounded hover:bg-surface-highlight text-text-secondary hover:text-primary transition-colors"
+                                            title="Edit Entry"
+                                        >
+                                            <Edit2 size={16} />
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (window.confirm('Are you sure you want to delete this entry?')) {
+                                                    await deleteTransaction(tx.id);
+                                                }
+                                            }}
+                                            className="p-1.5 rounded hover:bg-surface-highlight text-text-secondary hover:text-danger transition-colors"
+                                            title="Delete Entry"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     ))}
-                    {transactions.length === 0 && (
+                    {visibleTransactions.length === 0 && (
                         <div className="p-8 text-center text-text-secondary text-sm">No entries found.</div>
                     )}
                 </div>
@@ -334,44 +371,46 @@ export default function Entries() {
                                 <th className="text-left p-3 sm:p-4">Type</th>
                                 <th className="text-left p-3 sm:p-4">Party</th>
                                 <th className="text-right p-3 sm:p-4">Amount</th>
-                                <th className="text-center p-3 sm:p-4">Action</th>
+                                {showActions && <th className="text-center p-3 sm:p-4">Action</th>}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border">
-                            {transactions.slice().reverse().map(tx => (
+                            {visibleTransactions.slice().reverse().map(tx => (
                                 <tr key={tx.id} className={`transition-colors ${editingId === tx.id ? 'bg-yellow-500/10' : 'hover:bg-surface-highlight/50'}`}>
                                     <td className="p-3 sm:p-4 text-text-secondary whitespace-nowrap">{formatDate(tx.date)}</td>
                                     <td className="p-3 sm:p-4 font-medium">{tx.description}</td>
                                     <td className="p-3 sm:p-4 text-text-secondary">{TYPE_LABELS[tx.type] || tx.type}</td>
                                     <td className="p-3 sm:p-4 text-text-secondary">{tx.party_name || tx.partyName || '-'}</td>
                                     <td className="p-3 sm:p-4 text-right font-mono font-medium">{formatCurrency(tx.amount)}</td>
-                                    <td className="p-3 sm:p-4 text-center">
-                                        <div className="flex items-center justify-center gap-2">
-                                            <button
-                                                onClick={() => handleEdit(tx)}
-                                                className="p-1.5 hover:bg-surface rounded text-text-secondary hover:text-primary transition-colors"
-                                                title="Edit Entry"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={async () => {
-                                                    if (window.confirm('Are you sure you want to delete this entry?')) {
-                                                        await deleteTransaction(tx.id);
-                                                    }
-                                                }}
-                                                className="p-1.5 hover:bg-surface rounded text-text-secondary hover:text-danger transition-colors"
-                                                title="Delete Entry"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </td>
+                                    {showActions && (
+                                        <td className="p-3 sm:p-4 text-center">
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() => handleEdit(tx)}
+                                                    className="p-1.5 hover:bg-surface rounded text-text-secondary hover:text-primary transition-colors"
+                                                    title="Edit Entry"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm('Are you sure you want to delete this entry?')) {
+                                                            await deleteTransaction(tx.id);
+                                                        }
+                                                    }}
+                                                    className="p-1.5 hover:bg-surface rounded text-text-secondary hover:text-danger transition-colors"
+                                                    title="Delete Entry"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
-                            {transactions.length === 0 && (
+                            {visibleTransactions.length === 0 && (
                                 <tr>
-                                    <td colSpan="6" className="p-8 text-center text-text-secondary">No entries found.</td>
+                                    <td colSpan={showActions ? 6 : 5} className="p-8 text-center text-text-secondary">No entries found.</td>
                                 </tr>
                             )}
                         </tbody>
