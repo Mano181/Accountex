@@ -101,8 +101,8 @@ function SidebarNavigation({ pathname, hash, onNavigate }) {
               onClick={onNavigate}
               className={`group flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${
                 moduleIsActive
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                  ? 'bg-sidebar-active text-white shadow-sm'
+                  : 'text-sidebar-muted hover:bg-sidebar-surface hover:text-sidebar-text'
               }`}
             >
               <Icon size={16} className="opacity-90" />
@@ -120,8 +120,8 @@ function SidebarNavigation({ pathname, hash, onNavigate }) {
               }
               className={`group flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
                 moduleIsActive
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                  ? 'bg-sidebar-surface text-sidebar-text'
+                  : 'text-sidebar-muted hover:bg-sidebar-surface hover:text-sidebar-text'
               }`}
               aria-expanded={expanded}
               aria-controls={`${module.key}-submenu`}
@@ -147,8 +147,8 @@ function SidebarNavigation({ pathname, hash, onNavigate }) {
                       onClick={onNavigate}
                       className={`block rounded-md px-3 py-2 text-sm transition-colors ${
                         active
-                          ? 'bg-primary text-white'
-                          : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'
+                          ? 'bg-sidebar-active text-white'
+                          : 'text-sidebar-muted hover:bg-sidebar-surface hover:text-sidebar-text'
                       }`}
                     >
                       {item.label}
@@ -167,18 +167,18 @@ function SidebarNavigation({ pathname, hash, onNavigate }) {
 function SidebarShell({ pathname, hash, mobile = false, onNavigate }) {
   return (
     <>
-      <div className="flex items-center gap-3 border-b border-border px-2 pb-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 font-bold text-primary">
+      <div className="flex items-center gap-3 border-b border-sidebar-surface px-2 pb-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sidebar-surface font-bold text-sidebar-text">
           AR
         </div>
         <div>
-          <p className="text-sm font-semibold text-text-primary">Workspace</p>
-          <p className="text-xs text-text-secondary">Main Ledger</p>
+          <p className="text-sm font-semibold text-sidebar-text">Workspace</p>
+          <p className="text-xs text-sidebar-muted">Main Ledger</p>
         </div>
       </div>
 
       <div className="pt-5">
-        <p className="px-2 text-[11px] uppercase tracking-[0.2em] text-text-secondary">Navigation</p>
+        <p className="px-2 text-[11px] uppercase tracking-[0.2em] text-sidebar-muted">Navigation</p>
         <div className="mt-3">
           <SidebarNavigation
             pathname={pathname}
@@ -202,7 +202,7 @@ function AppContent() {
   return (
     <div className="min-h-screen flex flex-col">
       {!isAuthPage && (
-        <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur">
+        <header className="bg-surface/95 border-b border-border sticky top-0 z-20 backdrop-blur shadow-sm">
           <div className="w-full px-0 py-3">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 pl-4">
@@ -244,7 +244,7 @@ function AppContent() {
         <div className={isAuthPage ? '' : 'w-full'}>
           <div className={isAuthPage ? '' : 'flex'}>
             {!isAuthPage && (
-              <aside className="hidden md:flex md:w-56 lg:w-64 xl:w-72 flex-col border-r border-border bg-surface px-4 py-6 md:sticky md:top-[64px] md:h-[calc(100vh-64px)] md:overflow-y-auto">
+              <aside className="hidden md:flex md:w-56 lg:w-64 xl:w-72 flex-col border-r border-sidebar-surface bg-sidebar-bg px-4 py-6 md:sticky md:top-[64px] md:h-[calc(100vh-64px)] md:overflow-y-auto">
                 <SidebarShell pathname={location.pathname} hash={location.hash} />
               </aside>
             )}
@@ -252,7 +252,7 @@ function AppContent() {
             {!isAuthPage && mobileOpen && (
               <div id="mobile-navigation" className="md:hidden fixed inset-0 z-30">
                 <div className="absolute inset-0 bg-black/40" onClick={closeMobileNav} />
-                <aside className="absolute left-0 top-0 h-full w-[88vw] max-w-80 bg-surface border-r border-border px-4 py-6 shadow-xl overflow-y-auto">
+                <aside className="absolute left-0 top-0 h-full w-[88vw] max-w-80 bg-sidebar-bg border-r border-sidebar-surface px-4 py-6 shadow-xl overflow-y-auto">
                   <SidebarShell
                     pathname={location.pathname}
                     hash={location.hash}

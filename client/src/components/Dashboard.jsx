@@ -16,8 +16,8 @@ const getStatusTone = (status) => {
     return 'bg-danger/10 text-danger';
 };
 
-const SummaryCard = ({ title, amount, hint }) => (
-    <div className="rounded-xl border border-border bg-surface p-4 sm:p-5">
+const SummaryCard = ({ title, amount, hint, accentClass }) => (
+    <div className={`rounded-xl border border-border bg-surface p-4 sm:p-5 border-l-4 transition-all duration-200 hover:-translate-y-0.5 ${accentClass}`}>
         <p className="text-xs uppercase tracking-wide text-text-secondary">{title}</p>
         <p className="mt-2 text-2xl font-semibold text-text-primary font-mono">{formatCurrency(amount)}</p>
         <p className="mt-1 text-xs text-text-secondary">{hint}</p>
@@ -162,11 +162,11 @@ export default function Dashboard() {
             )}
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <SummaryCard title="Total Sales" amount={summary.totalSales} hint="Updated today • Sum of all invoices" />
-                <SummaryCard title="Total Purchase" amount={summary.totalPurchase} hint="Updated today • Sum of all bills" />
-                <SummaryCard title="Total Receivables" amount={summary.totalReceivables} hint="Updated today • Customers outstanding" />
-                <SummaryCard title="Total Payables" amount={summary.totalPayables} hint="Updated today • Vendors pending" />
-                <SummaryCard title="Inventory Value" amount={summary.inventoryValue} hint="Updated today • Quantity × unit price" />
+                <SummaryCard title="Total Sales" amount={summary.totalSales} hint="Updated today • Sum of all invoices" accentClass="border-l-primary" />
+                <SummaryCard title="Total Purchase" amount={summary.totalPurchase} hint="Updated today • Sum of all bills" accentClass="border-l-link" />
+                <SummaryCard title="Total Receivables" amount={summary.totalReceivables} hint="Updated today • Customers outstanding" accentClass="border-l-success" />
+                <SummaryCard title="Total Payables" amount={summary.totalPayables} hint="Updated today • Vendors pending" accentClass="border-l-warning" />
+                <SummaryCard title="Inventory Value" amount={summary.inventoryValue} hint="Updated today • Quantity × unit price" accentClass="border-l-sidebar-active" />
             </div>
 
             <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">

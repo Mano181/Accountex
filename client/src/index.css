@@ -1,26 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-background: #F8FAFC;
+  --color-background: #F3F5F9;
   --color-surface: #FFFFFF;
-  --color-surface-highlight: #F3F4F6;
-  /* Gray 100 for hover state */
-  --color-border: #E5E7EB;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
-  --color-text-header: #374151;
-  /* Specific table header color */
-  --color-primary: #4A6FA5;
-  --color-primary-hover: #3E5F8A;
-  --color-link: #5B8DEF;
-  --color-success: #2E7D32;
-  --color-danger: #C2413C;
-  --color-warning: #D97706;
+  --color-surface-highlight: #F5F7FD;
+  --color-border: #D8DFEA;
+  --color-text-primary: #1D2433;
+  --color-text-secondary: #5D6B82;
+  --color-text-header: #2E3A52;
+  --color-primary: #3348B5;
+  --color-primary-hover: #2A3C94;
+  --color-link: #3A58C9;
+  --color-success: #0F8F6B;
+  --color-danger: #D85A5A;
+  --color-warning: #D6901F;
+  --color-sidebar-bg: #1F2A44;
+  --color-sidebar-surface: #2C395A;
+  --color-sidebar-text: #ECF1FF;
+  --color-sidebar-muted: #AFC0E4;
+  --color-sidebar-active: #13A97E;
 }
 
 @layer base {
+  :root {
+    --shadow-card: 0 8px 24px rgba(22, 37, 71, 0.08);
+    --shadow-hover: 0 14px 28px rgba(22, 37, 71, 0.12);
+  }
+
   body {
     @apply bg-background text-text-primary antialiased min-h-screen;
     font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    background-image: linear-gradient(180deg, #f8f9fe 0%, #f3f5f9 100%);
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-text-primary;
+    letter-spacing: -0.01em;
+  }
+
+  h1 {
+    @apply font-bold;
+  }
+
+  h2,
+  h3 {
+    @apply font-semibold;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    @apply bg-white border border-border text-text-primary rounded-lg px-3 py-2.5 text-sm;
+    min-height: 44px;
+  }
+
+  input:not([type="checkbox"]):not([type="radio"]):focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(51, 72, 181, 0.16);
+    outline: none;
+  }
+
+  button {
+    @apply rounded-lg font-medium;
+  }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid rgba(51, 72, 181, 0.55);
+    outline-offset: 2px;
+  }
+
+  table thead th {
+    @apply text-text-header font-medium;
+  }
+
+  table tbody tr:nth-child(even) {
+    background: #FAFBFF;
+  }
+
+  table tbody tr:hover {
+    background: #EEF3FF !important;
+  }
+}
+
+@layer components {
+  :where(.bg-surface.rounded-lg, .bg-surface.rounded-xl) {
+    box-shadow: var(--shadow-card);
   }
 }
