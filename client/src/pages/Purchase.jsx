@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '@clerk/clerk-react';
+import { useLocation } from 'react-router-dom';
 import { Edit2, Plus, Save } from 'lucide-react';
 import { formatCurrency } from '../lib/format';
 import { useSales } from '../context/useSales';
@@ -42,6 +43,17 @@ const saveGuestList = (key, data) => {
     sessionStorage.setItem(key, JSON.stringify(data));
 };
 
+const getPurchaseViewFromHash = (hashValue) => {
+    const hash = String(hashValue || '').replace('#', '');
+    if (hash === 'bills') {
+        return { activeTab: 'bills' };
+    }
+    if (hash === 'payments-made') {
+        return { activeTab: 'bills', statusFilter: 'Paid' };
+    }
+    return { activeTab: 'vendors', statusFilter: '' };
+};
+
 const normalizeBillPayload = ({ vendorId, billDate, amountPaid, items }) => {
     const normalizedItems = items.map((item) => {
         const itemName = String(item.itemName || '').trim();
@@ -78,9 +90,11 @@ const normalizeBillPayload = ({ vendorId, billDate, amountPaid, items }) => {
 
 export default function PurchasePage() {
     const { isSignedIn } = useAuth();
+    const location = useLocation();
     const { inventoryItems, createInventoryItem, updateInventoryItem, refreshSalesData } = useSales();
 
-    const [activeTab, setActiveTab] = useState('vendors');
+    const initialView = getPurchaseViewFromHash(location.hash);
+    const [activeTab, setActiveTab] = useState(initialView.activeTab);
     const [loading, setLoading] = useState(true);
     const [vendors, setVendors] = useState([]);
     const [bills, setBills] = useState([]);
@@ -93,9 +107,15 @@ export default function PurchasePage() {
         amountPaid: '',
         items: [createEmptyBillItem()]
     });
-    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState(initialView.statusFilter || '');
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+
+    const setHashView = (hash) => {
+        const nextHash = `#${hash}`;
+        if (location.hash === nextHash) return;
+        window.history.replaceState(null, '', `${location.pathname}${nextHash}`);
+    };
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -124,6 +144,14 @@ export default function PurchasePage() {
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    useEffect(() => {
+        const nextView = getPurchaseViewFromHash(location.hash);
+        setActiveTab(nextView.activeTab);
+        if (nextView.statusFilter !== undefined) {
+            setStatusFilter(nextView.statusFilter);
+        }
+    }, [location.hash]);
 
     const visibleBills = useMemo(() => {
         if (!statusFilter) return bills;
@@ -373,14 +401,22 @@ export default function PurchasePage() {
                     <button
                         type="button"
                         className={`px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'vendors' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'}`}
-                        onClick={() => setActiveTab('vendors')}
+                        onClick={() => {
+                            setActiveTab('vendors');
+                            setStatusFilter('');
+                            setHashView('vendors');
+                        }}
                     >
                         Vendors
                     </button>
                     <button
                         type="button"
                         className={`px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${activeTab === 'bills' ? 'bg-primary text-white' : 'text-text-secondary hover:bg-surface-highlight hover:text-text-primary'}`}
-                        onClick={() => setActiveTab('bills')}
+                        onClick={() => {
+                            setActiveTab('bills');
+                            setStatusFilter('');
+                            setHashView('bills');
+                        }}
                     >
                         Bills
                     </button>
@@ -655,7 +691,11 @@ export default function PurchasePage() {
                             <h2 className="text-base sm:text-lg font-semibold text-text-primary">Bills</h2>
                             <select
                                 value={statusFilter}
-                                onChange={(event) => setStatusFilter(event.target.value)}
+                                onChange={(event) => {
+                                    const nextStatus = event.target.value;
+                                    setStatusFilter(nextStatus);
+                                    setHashView(nextStatus === 'Paid' ? 'payments-made' : 'bills');
+                                }}
                                 className="w-full sm:w-56 p-2 rounded bg-background border border-border focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm"
                             >
                                 <option value="">All Status</option>

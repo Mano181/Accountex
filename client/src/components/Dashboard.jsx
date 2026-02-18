@@ -1,246 +1,295 @@
-import { useMemo } from 'react';
-import { useTransactions } from '../context/TransactionContext';
-import { getGuestProfitLoss, getGuestBalanceSheet } from '../lib/guestAccounting';
-import { formatCurrency, formatDate, TYPE_LABELS } from '../lib/format';
-import { TRANSACTION_TYPES } from '../lib/constants';
-import { ArrowDownRight, ArrowUpRight, Layers, Scale, TrendingUp, Wallet } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@clerk/clerk-react';
+import { formatCurrency } from '../lib/format';
+import { useSales } from '../context/useSales';
 
-const INFLOW_TYPES = new Set([
-    TRANSACTION_TYPES.CUSTOMER_PAYMENT,
-    TRANSACTION_TYPES.CAPITAL_INTRODUCED,
-    TRANSACTION_TYPES.LOAN_TAKEN
-]);
+const GUEST_BILL_KEY = 'guest_purchase_bills';
 
-const OUTFLOW_TYPES = new Set([
-    TRANSACTION_TYPES.VENDOR_PAYMENT,
-    TRANSACTION_TYPES.EXPENSE,
-    TRANSACTION_TYPES.DRAWINGS,
-    TRANSACTION_TYPES.LOAN_PAID
-]);
-
-const StatCard = ({ label, value, hint, icon: Icon, tone = 'default' }) => {
-    const toneStyles = {
-        default: 'bg-surface border-border text-text-primary',
-        success: 'bg-success/10 border-success/20 text-success',
-        danger: 'bg-danger/10 border-danger/20 text-danger'
-    };
-
-    return (
-        <div className={`rounded-lg border p-4 ${toneStyles[tone]}`}>
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-xs uppercase tracking-wide text-text-secondary">{label}</p>
-                    <p className="text-xl font-semibold mt-1">{value}</p>
-                    {hint ? <p className="text-xs text-text-secondary mt-1">{hint}</p> : null}
-                </div>
-                {Icon ? <Icon className="text-text-secondary" size={22} /> : null}
-            </div>
-        </div>
-    );
+const toNumber = (value) => {
+    const parsed = parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
 };
 
-const formatPeriod = (dates) => {
-    if (!dates.length) return 'No transactions yet';
-    const sorted = dates.sort((a, b) => a - b);
-    return `${formatDate(sorted[0])} - ${formatDate(sorted[sorted.length - 1])}`;
+const getStatusTone = (status) => {
+    if (status === 'Paid') return 'bg-success/10 text-success';
+    if (status === 'Partially Paid') return 'bg-warning/10 text-warning';
+    return 'bg-danger/10 text-danger';
 };
+
+const SummaryCard = ({ title, amount, hint }) => (
+    <div className="rounded-xl border border-border bg-surface p-4 sm:p-5">
+        <p className="text-xs uppercase tracking-wide text-text-secondary">{title}</p>
+        <p className="mt-2 text-2xl font-semibold text-text-primary font-mono">{formatCurrency(amount)}</p>
+        <p className="mt-1 text-xs text-text-secondary">{hint}</p>
+    </div>
+);
+
+const EmptyState = ({ text }) => (
+    <div className="px-4 py-8 text-center text-sm text-text-secondary">{text}</div>
+);
 
 export default function Dashboard() {
-    const { transactions, loading } = useTransactions();
+    const { isSignedIn, isLoaded } = useAuth();
+    const { loading: salesLoading, invoices, outstandingList, inventoryItems, customers } = useSales();
 
-    const metrics = useMemo(() => {
-        const inflow = transactions.reduce((sum, tx) => {
-            if (INFLOW_TYPES.has(tx.type)) return sum + (parseFloat(tx.amount) || 0);
-            return sum;
-        }, 0);
+    const [purchaseBills, setPurchaseBills] = useState([]);
+    const [purchaseLoading, setPurchaseLoading] = useState(true);
+    const [purchaseError, setPurchaseError] = useState('');
 
-        const outflow = transactions.reduce((sum, tx) => {
-            if (OUTFLOW_TYPES.has(tx.type)) return sum + (parseFloat(tx.amount) || 0);
-            return sum;
-        }, 0);
+    useEffect(() => {
+        let active = true;
 
-        const pl = getGuestProfitLoss(transactions);
-        const bs = getGuestBalanceSheet(transactions);
-        const dates = transactions
-            .map(tx => new Date(tx.date || tx.timestamp))
-            .filter(date => !Number.isNaN(date.getTime()));
+        const loadPurchaseBills = async () => {
+            if (!isLoaded) return;
 
-        const inventoryItem = bs.assets.find(item => item.name === 'Inventory');
-        const inventoryValue = inventoryItem ? inventoryItem.amount : 0;
-
-        return {
-            inflow,
-            outflow,
-            netCash: inflow - outflow,
-            totalCount: transactions.length,
-            netIncome: pl.netIncome,
-            totalAssets: bs.totalAssets,
-            totalLiabilities: bs.totalLiabilities,
-            totalEquity: bs.totalEquity,
-            inventoryValue,
-            period: formatPeriod(dates)
+            setPurchaseLoading(true);
+            setPurchaseError('');
+            try {
+                if (isSignedIn) {
+                    const response = await fetch('/api/purchase/bills');
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Failed to load purchase bills');
+                    }
+                    if (!active) return;
+                    setPurchaseBills(Array.isArray(data) ? data : []);
+                } else {
+                    const raw = sessionStorage.getItem(GUEST_BILL_KEY);
+                    const guestBills = raw ? JSON.parse(raw) : [];
+                    if (!active) return;
+                    setPurchaseBills(Array.isArray(guestBills) ? guestBills : []);
+                }
+            } catch (error) {
+                if (!active) return;
+                setPurchaseBills([]);
+                setPurchaseError(error.message || 'Failed to load purchase bills');
+            } finally {
+                if (active) {
+                    setPurchaseLoading(false);
+                }
+            }
         };
-    }, [transactions]);
 
-    const partyBalances = useMemo(() => {
-        const customers = {};
-        const vendors = {};
+        loadPurchaseBills();
+        return () => {
+            active = false;
+        };
+    }, [isLoaded, isSignedIn]);
 
-        transactions.forEach(tx => {
-            const amount = parseFloat(tx.amount) || 0;
-            const party = tx.party_name || tx.partyName;
-            if (!party) return;
+    const customerNameById = useMemo(
+        () => Object.fromEntries(customers.map((customer) => [customer.id, customer.shopName])),
+        [customers]
+    );
 
-            if (tx.type === TRANSACTION_TYPES.SALES_INVOICE) {
-                customers[party] = (customers[party] || 0) + amount;
-            }
-            if (tx.type === TRANSACTION_TYPES.CUSTOMER_PAYMENT) {
-                customers[party] = (customers[party] || 0) - amount;
-            }
-            if (tx.type === TRANSACTION_TYPES.PURCHASE_INVOICE) {
-                vendors[party] = (vendors[party] || 0) + amount;
-            }
-            if (tx.type === TRANSACTION_TYPES.VENDOR_PAYMENT) {
-                vendors[party] = (vendors[party] || 0) - amount;
+    const invoiceStatusByCustomerId = useMemo(() => {
+        const statusMap = {};
+        outstandingList.forEach((row) => {
+            const totalInvoiced = toNumber(row.totalInvoiced);
+            const totalOutstanding = toNumber(row.totalOutstandingAmount);
+
+            if (totalInvoiced <= 0 || totalOutstanding >= totalInvoiced) {
+                statusMap[row.customerId] = 'Unpaid';
+            } else if (totalOutstanding <= 0) {
+                statusMap[row.customerId] = 'Paid';
+            } else {
+                statusMap[row.customerId] = 'Partially Paid';
             }
         });
+        return statusMap;
+    }, [outstandingList]);
 
-        const customerList = Object.entries(customers)
-            .map(([name, balance]) => ({ name, balance }))
-            .filter(item => Math.abs(item.balance) > 0.009)
-            .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+    const summary = useMemo(() => {
+        const totalSales = invoices.reduce((sum, invoice) => sum + toNumber(invoice.totalAmount), 0);
+        const totalPurchase = purchaseBills.reduce((sum, bill) => sum + toNumber(bill.totalAmount), 0);
+        const totalReceivables = outstandingList.reduce(
+            (sum, row) => sum + Math.max(0, toNumber(row.totalOutstandingAmount)),
+            0
+        );
+        const totalPayables = purchaseBills.reduce(
+            (sum, bill) => sum + Math.max(0, toNumber(bill.amountPayable)),
+            0
+        );
+        const inventoryValue = inventoryItems.reduce((sum, item) => {
+            const quantity = toNumber(item.quantity ?? item.quantityOnHand);
+            const unitPrice = toNumber(item.unitPrice ?? item.defaultUnitPrice);
+            return sum + (quantity * unitPrice);
+        }, 0);
 
-        const vendorList = Object.entries(vendors)
-            .map(([name, balance]) => ({ name, balance }))
-            .filter(item => Math.abs(item.balance) > 0.009)
-            .sort((a, b) => Math.abs(b.balance) - Math.abs(a.balance));
+        return {
+            totalSales,
+            totalPurchase,
+            totalReceivables,
+            totalPayables,
+            inventoryValue
+        };
+    }, [invoices, purchaseBills, outstandingList, inventoryItems]);
 
-        return { customerList, vendorList };
-    }, [transactions]);
+    const recentSales = useMemo(
+        () =>
+            invoices
+                .slice()
+                .sort((a, b) => new Date(b.invoiceDate || b.createdAt) - new Date(a.invoiceDate || a.createdAt))
+                .slice(0, 5),
+        [invoices]
+    );
 
-    const recentTransactions = useMemo(() => {
-        return transactions
-            .slice()
-            .sort((a, b) => new Date(b.date || b.timestamp) - new Date(a.date || a.timestamp))
-            .slice(0, 5);
-    }, [transactions]);
+    const recentPurchases = useMemo(
+        () =>
+            purchaseBills
+                .slice()
+                .sort((a, b) => new Date(b.billDate || b.createdAt) - new Date(a.billDate || a.createdAt))
+                .slice(0, 5),
+        [purchaseBills]
+    );
+
+    const loading = !isLoaded || salesLoading || purchaseLoading;
 
     if (loading) {
-        return <div className="text-center text-text-secondary py-4">Loading dashboard...</div>;
+        return <div className="rounded-lg border border-border bg-surface px-4 py-8 text-center text-sm text-text-secondary">Loading dashboard...</div>;
     }
 
     return (
         <section className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div>
-                    <h2 className="text-lg font-semibold">Dashboard Overview</h2>
-                    <p className="text-sm text-text-secondary">Period: {metrics.period}</p>
-                </div>
-                <div className="text-xs text-text-secondary">
-                    {metrics.totalCount} total transactions
-                </div>
+            <div className="flex flex-col gap-1">
+                <h2 className="text-xl font-semibold text-text-primary">Financial Overview</h2>
+                <p className="text-sm text-text-secondary">Sales, purchase, receivables, payables, and inventory snapshot.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <StatCard
-                    label="Total Inflow"
-                    value={formatCurrency(metrics.inflow)}
-                    hint="Sales, payments, loans"
-                    icon={ArrowUpRight}
-                    tone="success"
-                />
-                <StatCard
-                    label="Total Outflow"
-                    value={formatCurrency(metrics.outflow)}
-                    hint="Purchases, expenses, repayments"
-                    icon={ArrowDownRight}
-                    tone="danger"
-                />
-                <StatCard
-                    label="Net Cash"
-                    value={formatCurrency(metrics.netCash)}
-                    hint="Inflow minus outflow"
-                    icon={Wallet}
-                />
-                <StatCard
-                    label="Net Income"
-                    value={formatCurrency(metrics.netIncome)}
-                    hint="Based on entries"
-                    icon={TrendingUp}
-                    tone={metrics.netIncome >= 0 ? 'success' : 'danger'}
-                />
+            {purchaseError && (
+                <div className="rounded-lg border border-warning/30 bg-warning/10 px-4 py-3 text-sm text-warning">
+                    {purchaseError}
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                <SummaryCard title="Total Sales" amount={summary.totalSales} hint="Updated today • Sum of all invoices" />
+                <SummaryCard title="Total Purchase" amount={summary.totalPurchase} hint="Updated today • Sum of all bills" />
+                <SummaryCard title="Total Receivables" amount={summary.totalReceivables} hint="Updated today • Customers outstanding" />
+                <SummaryCard title="Total Payables" amount={summary.totalPayables} hint="Updated today • Vendors pending" />
+                <SummaryCard title="Inventory Value" amount={summary.inventoryValue} hint="Updated today • Quantity × unit price" />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2 bg-surface rounded-lg border border-border p-4 min-w-0">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-semibold">Recent Activity</h3>
-                        <span className="text-xs text-text-secondary">Last 5 entries</span>
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                <div className="rounded-xl border border-border bg-surface">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+                        <h3 className="text-sm font-semibold text-text-primary">Recent Sales</h3>
+                        <span className="text-xs text-text-secondary">Last 5 invoices</span>
                     </div>
-                    {recentTransactions.length === 0 ? (
-                        <p className="text-sm text-text-secondary">No recent transactions.</p>
+
+                    {recentSales.length === 0 ? (
+                        <EmptyState text="No sales invoices found." />
                     ) : (
-                        <div className="space-y-3">
-                            {recentTransactions.map(tx => (
-                                <div key={tx.id} className="flex items-center justify-between text-sm gap-3">
-                                    <div className="min-w-0">
-                                        <p className="font-medium truncate">{tx.description}</p>
-                                        <p className="text-xs text-text-secondary truncate">
-                                            {formatDate(tx.date)} • {TYPE_LABELS[tx.type] || tx.type}
-                                        </p>
-                                    </div>
-                                    <p className="font-mono">{formatCurrency(tx.amount)}</p>
-                                </div>
-                            ))}
-                        </div>
+                        <>
+                            <div className="hidden md:block">
+                                <table className="w-full table-fixed text-sm">
+                                    <thead className="bg-surface-highlight text-left text-xs uppercase tracking-wide text-text-secondary">
+                                        <tr>
+                                            <th className="px-4 py-3">Invoice No</th>
+                                            <th className="px-4 py-3">Customer</th>
+                                            <th className="px-4 py-3 text-right">Total</th>
+                                            <th className="px-4 py-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {recentSales.map((invoice) => {
+                                            const status = invoiceStatusByCustomerId[invoice.customerId] || 'Unpaid';
+                                            return (
+                                                <tr key={invoice.id}>
+                                                    <td className="px-4 py-3 font-medium text-text-primary">{invoice.invoiceNumber}</td>
+                                                    <td className="px-4 py-3 text-text-secondary truncate">{invoice.customerShopName || customerNameById[invoice.customerId] || '-'}</td>
+                                                    <td className="px-4 py-3 text-right font-mono text-text-primary">{formatCurrency(invoice.totalAmount)}</td>
+                                                    <td className="px-4 py-3">
+                                                        <span className={`inline-flex rounded px-2 py-1 text-xs font-medium ${getStatusTone(status)}`}>
+                                                            {status}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="space-y-2 p-3 md:hidden">
+                                {recentSales.map((invoice) => {
+                                    const status = invoiceStatusByCustomerId[invoice.customerId] || 'Unpaid';
+                                    return (
+                                        <div key={invoice.id} className="rounded-lg border border-border p-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-text-primary">{invoice.invoiceNumber}</p>
+                                                    <p className="truncate text-xs text-text-secondary">{invoice.customerShopName || customerNameById[invoice.customerId] || '-'}</p>
+                                                </div>
+                                                <span className={`inline-flex rounded px-2 py-1 text-xs font-medium ${getStatusTone(status)}`}>
+                                                    {status}
+                                                </span>
+                                            </div>
+                                            <p className="mt-2 text-right font-mono text-sm text-text-primary">{formatCurrency(invoice.totalAmount)}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </div>
 
-                <div className="bg-surface rounded-lg border border-border p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-sm font-semibold">
-                        <Scale size={16} />
-                        Inventory Available
+                <div className="rounded-xl border border-border bg-surface">
+                    <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
+                        <h3 className="text-sm font-semibold text-text-primary">Recent Purchases</h3>
+                        <span className="text-xs text-text-secondary">Last 5 bills</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
-                        <span className="text-text-secondary">Inventory Value</span>
-                        <span className="font-mono">{formatCurrency(metrics.inventoryValue)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs text-text-secondary pt-2 border-t border-border">
-                        <span>From Inventory account</span>
-                        <Layers size={14} />
-                    </div>
-                </div>
-            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <div className="bg-surface rounded-lg border border-border p-4 min-w-0">
-                    <h3 className="text-sm font-semibold mb-3">Customer Balances</h3>
-                    {partyBalances.customerList.length === 0 ? (
-                        <p className="text-sm text-text-secondary">No customer balances yet.</p>
+                    {recentPurchases.length === 0 ? (
+                        <EmptyState text="No purchase bills found." />
                     ) : (
-                        <div className="space-y-2">
-                            {partyBalances.customerList.slice(0, 5).map(item => (
-                                <div key={item.name} className="flex items-center justify-between text-sm gap-3">
-                                    <span className="truncate">{item.name}</span>
-                                    <span className="font-mono">{formatCurrency(item.balance)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-                <div className="bg-surface rounded-lg border border-border p-4 min-w-0">
-                    <h3 className="text-sm font-semibold mb-3">Vendor Balances</h3>
-                    {partyBalances.vendorList.length === 0 ? (
-                        <p className="text-sm text-text-secondary">No vendor balances yet.</p>
-                    ) : (
-                        <div className="space-y-2">
-                            {partyBalances.vendorList.slice(0, 5).map(item => (
-                                <div key={item.name} className="flex items-center justify-between text-sm gap-3">
-                                    <span className="truncate">{item.name}</span>
-                                    <span className="font-mono">{formatCurrency(item.balance)}</span>
-                                </div>
-                            ))}
-                        </div>
+                        <>
+                            <div className="hidden md:block">
+                                <table className="w-full table-fixed text-sm">
+                                    <thead className="bg-surface-highlight text-left text-xs uppercase tracking-wide text-text-secondary">
+                                        <tr>
+                                            <th className="px-4 py-3">Bill No</th>
+                                            <th className="px-4 py-3">Vendor</th>
+                                            <th className="px-4 py-3 text-right">Total</th>
+                                            <th className="px-4 py-3">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-border">
+                                        {recentPurchases.map((bill) => (
+                                            <tr key={bill.id}>
+                                                <td className="px-4 py-3 font-medium text-text-primary">{bill.billNumber}</td>
+                                                <td className="px-4 py-3 text-text-secondary truncate">{bill.vendorName || '-'}</td>
+                                                <td className="px-4 py-3 text-right font-mono text-text-primary">{formatCurrency(bill.totalAmount)}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`inline-flex rounded px-2 py-1 text-xs font-medium ${getStatusTone(bill.status || 'Unpaid')}`}>
+                                                        {bill.status || 'Unpaid'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="space-y-2 p-3 md:hidden">
+                                {recentPurchases.map((bill) => {
+                                    const status = bill.status || 'Unpaid';
+                                    return (
+                                        <div key={bill.id} className="rounded-lg border border-border p-3">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-text-primary">{bill.billNumber}</p>
+                                                    <p className="truncate text-xs text-text-secondary">{bill.vendorName || '-'}</p>
+                                                </div>
+                                                <span className={`inline-flex rounded px-2 py-1 text-xs font-medium ${getStatusTone(status)}`}>
+                                                    {status}
+                                                </span>
+                                            </div>
+                                            <p className="mt-2 text-right font-mono text-sm text-text-primary">{formatCurrency(bill.totalAmount)}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
